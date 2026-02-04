@@ -13,9 +13,8 @@ import type { Conversation, UserProfile, ChatSidebarProps } from "@/lib/chat/typ
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar"
 import { API_URL } from "@/lib/apiConfig"
 
-const formatRelativeTime = (date: Date) => {
-  const now = new Date()
-  const diff = now.getTime() - new Date(date).getTime()
+const formatRelativeTime = (date: Date, nowMs: number) => {
+  const diff = nowMs - new Date(date).getTime()
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)
@@ -42,6 +41,7 @@ export function ChatSidebar({
 }: ChatSidebarProps) {
   const [userInfo, setUserInfo] = useState<UserProfile | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [nowMs, setNowMs] = useState<number | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -81,12 +81,19 @@ export function ChatSidebar({
     fetchUser()
   }, [])
 
+  useEffect(() => {
+    // Avoid using Date.now() during the first render to prevent SSR/CSR mismatch
+    setNowMs(Date.now())
+    const interval = setInterval(() => setNowMs(Date.now()), 60000)
+    return () => clearInterval(interval)
+  }, [])
+
   const filtered = conversations.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const groupedConversations = filtered.reduce((groups, conv) => {
-    const now = new Date()
+    const nowTime = nowMs ?? 0
     const convDate = new Date(conv.updatedAt)
-    const diffTime = now.getTime() - convDate.getTime()
+    const diffTime = nowTime - convDate.getTime()
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
     let group = "Earlier"
@@ -198,7 +205,7 @@ export function ChatSidebar({
                             <div className="ml-3 flex-1 truncate">
                               <div className="truncate">{conv.title}</div>
                               <div className="text-[11px] text-muted-foreground">
-                                {formatRelativeTime(conv.updatedAt)}
+                                {nowMs ? formatRelativeTime(conv.updatedAt, nowMs) : ""}
                               </div>
                             </div>
                           )}
