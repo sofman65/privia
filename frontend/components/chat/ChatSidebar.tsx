@@ -9,9 +9,9 @@ import { Logo } from "@/components/logo"
 import { Plus, MessageSquare, Trash2, Search, Settings, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
-import type { Conversation, UserProfile, ChatSidebarProps } from "@/lib/chat/types"
+import type { Conversation, ChatSidebarProps } from "@/types/conversation"
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar"
-import { API_URL } from "@/lib/apiConfig"
+import { useUserProfile } from "@/hooks/useUserProfile"
 
 const formatRelativeTime = (date: Date, nowMs: number) => {
   const diff = nowMs - new Date(date).getTime()
@@ -39,7 +39,7 @@ export function ChatSidebar({
   handleLogout,
   onOpenSettings,
 }: ChatSidebarProps) {
-  const [userInfo, setUserInfo] = useState<UserProfile | null>(null)
+  const userInfo = useUserProfile()
   const [isMobile, setIsMobile] = useState(false)
   const [nowMs, setNowMs] = useState<number | null>(null)
 
@@ -53,33 +53,6 @@ export function ChatSidebar({
   }, [])
 
   const collapsed = useMemo(() => !sidebarOpen && isMobile, [sidebarOpen, isMobile])
-
-  useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-    if (!token) return
-
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        if (!res.ok) return
-        const data = await res.json()
-        setUserInfo({
-          full_name: data.full_name,
-          role: data.role,
-          id: data.id,
-          email: data.email,
-        })
-      } catch {
-        // ignore
-      }
-    }
-
-    fetchUser()
-  }, [])
 
   useEffect(() => {
     // Avoid using Date.now() during the first render to prevent SSR/CSR mismatch

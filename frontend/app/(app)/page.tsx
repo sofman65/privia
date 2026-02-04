@@ -8,19 +8,20 @@ import { SettingsModal } from "@/components/chat/SettingsModal"
 import { ChatComposer } from "@/components/chat/ChatComposer"
 import { ChatScrollButton } from "@/components/chat/ChatScrollButton"
 import { useConversations } from "@/hooks/useConversations"
-import { useHermesWS } from "@/hooks/useHermesWS"
-import { useHermesSSE } from "@/hooks/useHermesSSE"
-import { Conversation } from "@/lib/chat/types"
+import { useChatWS } from "@/hooks/useChatWS"
+import { useChatSSE } from "@/hooks/useChatSSE"
+import { clearAuth, getToken } from "@/lib/auth"
+import { Conversation } from "@/types/conversation"
 import { cn } from "@/lib/utils"
 
 export default function PriviaChat() {
   const [searchQuery, setSearchQuery] = useState("")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [input, setInput] = useState("")
-  const [backendUrl] = useState(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [useSSE, setUseSSE] = useState(true) // Use SSE by default (ChatGPT-style)
+  const [authChecked, setAuthChecked] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -49,10 +50,12 @@ export default function PriviaChat() {
 
   // Redirect to login if no token
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+    const token = getToken()
     if (!token) {
       window.location.href = "/login"
+      return
     }
+    setAuthChecked(true)
   }, [])
 
   const wsHandlers = useMemo(
@@ -82,8 +85,8 @@ export default function PriviaChat() {
   )
 
   // Use SSE or WebSocket based on toggle
-  const wsConnection = useHermesWS(backendUrl, wsHandlers)
-  const sseConnection = useHermesSSE(backendUrl, wsHandlers)
+  const wsConnection = useChatWS(wsHandlers)
+  const sseConnection = useChatSSE(wsHandlers)
   
   const { isConnected, isLoading, sendMessage, stopGeneration } = useSSE ? sseConnection : wsConnection
 
@@ -159,9 +162,12 @@ export default function PriviaChat() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
+    clearAuth()
     window.location.href = "/login"
+  }
+
+  if (!authChecked) {
+    return null
   }
 
   return (

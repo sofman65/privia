@@ -1,6 +1,6 @@
 import { useReducer } from "react"
 import { chatReducer, initialChatState } from "./chatReducer"
-import { ChatState, Conversation } from "../lib/chat/types"
+import { ChatState, Conversation } from "@/types/conversation"
 
 export function useConversations() {
   const [state, dispatch] = useReducer(chatReducer, initialChatState)

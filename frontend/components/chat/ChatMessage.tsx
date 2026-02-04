@@ -4,7 +4,7 @@ import { Logo } from "@/components/logo"
 import { ChatSources } from "@/components/chat/ChatSources"
 import { MessageActions } from "@/components/chat/MessageActions"
 import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer"
-import type { Message } from "@/lib/chat/types"
+import type { Message } from "@/types/chat"
 
 type Props = {
   message: Message

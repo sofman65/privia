@@ -1,31 +1,5 @@
-export type Role = "user" | "assistant"
-export type Mode = "rag" | "chat" | "error" | string
-
-export interface UserProfile {
-  id: string
-  email?: string | null
-  full_name?: string | null
-  role?: string | null
-  refresh_token?: string | null
-}
-
-export interface TokenResponse {
-  access_token: string
-  token_type: string
-  user: UserProfile
-}
-
-export interface ApiError {
-  detail: string
-}
-
-export interface Message {
-  role: Role
-  content: string
-  sources?: string[]
-  timestamp: Date
-  mode?: Mode
-}
+import type { Dispatch, SetStateAction } from "react"
+import type { Message } from "@/types/chat"
 
 export interface Conversation {
   id: string
@@ -59,7 +33,7 @@ export type ChatSidebarProps = {
   conversations: Conversation[]
   currentId: string
   sidebarOpen: boolean
-  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setSidebarOpen: Dispatch<SetStateAction<boolean>>
   onNewConversation: () => void
   onDelete: (id: string) => void
   onSelect: (id: string) => void
@@ -67,14 +41,4 @@ export type ChatSidebarProps = {
   setSearchQuery: (q: string) => void
   handleLogout: () => void
   onOpenSettings: () => void
-}
-
-export interface ChatComposerProps {
-  value: string
-  onChange: (value: string) => void
-  onSend: () => void
-  onNewConversation: () => void
-  onStop: () => void
-  isLoading: boolean
-  isConnected: boolean
 }

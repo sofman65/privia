@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
+import { chatUrls } from "@/lib/api/chat"
 
 type Handlers = {
   onSources: (sources: any[], mode?: string) => void
@@ -9,7 +10,7 @@ type Handlers = {
   onError: (msg: string) => void
 }
 
-export function useHermesSSE(backendUrl: string, handlers: Handlers) {
+export function useChatSSE(handlers: Handlers) {
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(true)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -27,7 +28,7 @@ export function useHermesSSE(backendUrl: string, handlers: Handlers) {
       abortControllerRef.current = abortController
 
       try {
-        const response = await fetch(`${backendUrl}/api/stream`, {
+        const response = await fetch(chatUrls.stream(), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -128,7 +129,7 @@ export function useHermesSSE(backendUrl: string, handlers: Handlers) {
         abortControllerRef.current = null
       }
     },
-    [backendUrl]
+    []
   )
 
   const stopGeneration = useCallback(() => {

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Logo } from "@/components/logo"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { signup } from "@/lib/api/auth"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -16,7 +17,6 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,22 +24,7 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${apiUrl}/api/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          full_name: fullName || email,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Could not complete sign up")
-      }
-
+      await signup(email, password, fullName)
       router.push("/login?registered=true")
     } catch (err: any) {
       setError(err.message || "That email is already registered")

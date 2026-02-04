@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { chatUrls, queryChat } from "@/lib/api/chat"
 
 type Handlers = {
   onSources: (sources: string[], mode?: string) => void
@@ -7,7 +8,7 @@ type Handlers = {
   onError: (msg: string) => void
 }
 
-export function useHermesWS(backendUrl: string, handlers: Handlers) {
+export function useChatWS(handlers: Handlers) {
   const [ws, setWs] = useState<WebSocket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -20,14 +21,12 @@ export function useHermesWS(backendUrl: string, handlers: Handlers) {
   }, [handlers])
 
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000"
-
     const connect = () => {
       if (reconnectAttempts.current >= maxReconnectAttempts) {
         return
       }
       try {
-        const socket = new WebSocket(`${wsUrl}/api/ws/chat`)
+        const socket = new WebSocket(chatUrls.ws())
 
         socket.onopen = () => {
           setIsConnected(true)
@@ -86,16 +85,7 @@ export function useHermesWS(backendUrl: string, handlers: Handlers) {
 
     // REST fallback
     try {
-      const response = await fetch(`${backendUrl}/api/query`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ question }),
-      })
-
-      if (!response.ok) throw new Error("Failed to fetch")
-      const data = await response.json()
+      const data = await queryChat(question)
       handlers.onToken(data.answer, data.mode)
       handlers.onSources(data.sources || [], data.mode)
     } catch (err: any) {

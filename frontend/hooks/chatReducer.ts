@@ -1,4 +1,5 @@
-import { ChatAction, ChatState, Conversation, Message } from "../lib/chat/types"
+import { ChatAction, ChatState, Conversation } from "@/types/conversation"
+import { Message } from "@/types/chat"
 
 const createWelcomeConversation = (): Conversation => {
   const now = new Date()

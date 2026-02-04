@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Logo } from "@/components/logo"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { login } from "@/lib/api/auth"
+import { storeAuth } from "@/lib/auth"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -15,7 +17,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,24 +24,8 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const formData = new FormData()
-      formData.append("username", email) // backend expects "username"
-      formData.append("password", password)
-
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
-        method: "POST",
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Unable to sign in")
-      }
-
-      localStorage.setItem("token", data.access_token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-
+      const data = await login(email, password)
+      storeAuth(data.access_token, data.user)
       router.push("/")
     } catch (err: any) {
       setError(err.message || "Check your credentials and try again")

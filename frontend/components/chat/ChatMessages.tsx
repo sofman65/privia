@@ -1,7 +1,7 @@
 import { ChatMessage } from "@/components/chat/ChatMessage"
 import { ChatLoading } from "@/components/chat/ChatLoading"
 import { EmptyState } from "@/components/chat/EmptyState"
-import type { Message } from "@/lib/chat/types"
+import type { Message } from "@/types/chat"
 
 interface ChatMessagesProps {
   messages: Message[]
