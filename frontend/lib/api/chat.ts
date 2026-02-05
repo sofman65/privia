@@ -3,7 +3,6 @@ import { apiFetch } from "./client"
 
 export const chatUrls = {
   stream: () => `${env.apiUrl}/api/stream`,
-  query: () => `${env.apiUrl}/api/query`,
   ws: () => `${env.wsUrl}/api/ws/chat`,
 }
 
