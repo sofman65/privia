@@ -4,6 +4,8 @@ import { Suspense } from "react"
 import { ChatSidebar } from "@/components/chat/ChatSidebar"
 import Loading from "@/app/loading"
 
+export const dynamic = "force-dynamic"
+
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">

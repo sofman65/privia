@@ -2,26 +2,26 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChatSidebar } from "@/components/chat/ChatSidebar"
 import { ChatMessages } from "@/components/chat/ChatMessages"
 import { SettingsModal } from "@/components/chat/SettingsModal"
 import { ChatComposer } from "@/components/chat/ChatComposer"
 import { ChatScrollButton } from "@/components/chat/ChatScrollButton"
+
 import { useConversations } from "@/hooks/useConversations"
 import { useChatWS } from "@/hooks/useChatWS"
 import { useChatSSE } from "@/hooks/useChatSSE"
+
 import { clearAuth, getToken } from "@/lib/auth"
-import { Conversation } from "@/types/conversation"
+
 import { cn } from "@/lib/utils"
 
-export default function PriviaChat() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+export default function PriviaChatPage() {
   const [input, setInput] = useState("")
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [useSSE, setUseSSE] = useState(true) // Use SSE by default (ChatGPT-style)
+  const [useSSE, setUseSSE] = useState(true)
   const [authChecked, setAuthChecked] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -37,18 +37,21 @@ export default function PriviaChat() {
     deleteConversation,
   } = useConversations()
 
-  const currentConversationId = currentConversation?.id ?? state.currentConversationId
+  const currentConversationId =
+    currentConversation?.id ?? state.currentConversationId
+
   const messages = currentConversation?.messages || []
 
   const visibleMessages = messages.filter(
     (m) =>
       !(
         m.role === "assistant" &&
-        (m.content === "" || m.content.toLowerCase().includes("welcome to privia"))
+        (m.content === "" ||
+          m.content.toLowerCase().includes("welcome to privia"))
       ),
   )
 
-  // Redirect to login if no token
+  // --- Auth gate (temporary, until backend sessions exist)
   useEffect(() => {
     const token = getToken()
     if (!token) {
@@ -58,19 +61,17 @@ export default function PriviaChat() {
     setAuthChecked(true)
   }, [])
 
-  const wsHandlers = useMemo(
+  // --- Streaming handlers
+  const handlers = useMemo(
     () => ({
       onSources: (sources: string[], mode?: string) => {
         setSources(currentConversationId, sources, mode)
       },
       onToken: (content: string, mode?: string) => {
-        // For SSE: content is the FULL accumulated answer
-        // For WS: content might be a token to append
         updateAssistantMessage(currentConversationId, (msg) => {
-          // SSE sends full content, WS sends incremental tokens
-          // Check if this looks like a full replacement (longer than current + token)
-          const isFullContent = content.length > msg.content.length + 50 || msg.content === ""
-          if (isFullContent || mode === "rag") {
+          const isFull =
+            content.length > msg.content.length + 50 || msg.content === ""
+          if (isFull || mode === "rag") {
             return { ...msg, content, mode }
           }
           return { ...msg, content: msg.content + content, mode }
@@ -78,19 +79,23 @@ export default function PriviaChat() {
       },
       onDone: () => {},
       onError: (msg: string) => {
-        updateAssistantMessage(currentConversationId, (m) => ({ ...m, content: `Error: ${msg}`, mode: "error" }))
+        updateAssistantMessage(currentConversationId, (m) => ({
+          ...m,
+          content: `Error: ${msg}`,
+          mode: "error",
+        }))
       },
     }),
     [currentConversationId, setSources, updateAssistantMessage],
   )
 
-  // Use SSE or WebSocket based on toggle
-  const wsConnection = useChatWS(wsHandlers)
-  const sseConnection = useChatSSE(wsHandlers)
-  
-  const { isConnected, isLoading, sendMessage, stopGeneration } = useSSE ? sseConnection : wsConnection
+  const ws = useChatWS(handlers)
+  const sse = useChatSSE(handlers)
 
-  // Auto-scroll to bottom when new messages arrive
+  const { isConnected, isLoading, sendMessage, stopGeneration } =
+    useSSE ? sse : ws
+
+  // --- Scroll helpers
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [])
@@ -101,96 +106,73 @@ export default function PriviaChat() {
     }
   }, [visibleMessages.length, isLoading, scrollToBottom])
 
-  // Handle scroll to show/hide scroll button
   const handleScroll = useCallback(
     (e: any) => {
-      const element = e.target
-      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100
-      setShowScrollButton(!isNearBottom && visibleMessages.length > 0)
+      const el = e.target
+      const nearBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 100
+      setShowScrollButton(!nearBottom && visibleMessages.length > 0)
     },
     [visibleMessages.length],
   )
 
+  // --- Actions
   const handleSend = useCallback(
     async (text?: string) => {
-      const messageToSend = text || input
-      if (!messageToSend.trim() || isLoading) return
+      const message = text || input
+      if (!message.trim() || isLoading) return
 
       const convId = currentConversationId
-      const conversation = state.conversations.find((c) => c.id === convId)
-      const isFirstUserMessage = conversation ? conversation.messages.length === 1 && conversation.messages[0].role === "assistant" : false
+      const conv = state.conversations.find((c) => c.id === convId)
+      const firstUser =
+        conv &&
+        conv.messages.length === 1 &&
+        conv.messages[0].role === "assistant"
 
-      addUserMessage(convId, messageToSend, new Date())
-      if (isFirstUserMessage) {
-        updateTitle(convId, messageToSend.slice(0, 40) + (messageToSend.length > 40 ? "..." : ""))
+      addUserMessage(convId, message, new Date())
+
+      if (firstUser) {
+        updateTitle(
+          convId,
+          message.slice(0, 40) + (message.length > 40 ? "…" : ""),
+        )
       }
+
       addAssistantMessage(convId, "", new Date())
       setInput("")
-      await sendMessage(messageToSend)
+      await sendMessage(message)
     },
-    [addAssistantMessage, addUserMessage, currentConversationId, input, isLoading, sendMessage, state.conversations, updateTitle],
+    [
+      addAssistantMessage,
+      addUserMessage,
+      currentConversationId,
+      input,
+      isLoading,
+      sendMessage,
+      state.conversations,
+      updateTitle,
+    ],
   )
 
   const handleRegenerate = useCallback(() => {
-    const lastUserMessage = messages.filter((m) => m.role === "user").pop()
-    if (lastUserMessage && !isLoading) {
-      handleSend(lastUserMessage.content)
+    const lastUser = messages.filter((m) => m.role === "user").pop()
+    if (lastUser && !isLoading) {
+      handleSend(lastUser.content)
     }
   }, [handleSend, isLoading, messages])
 
-  const createNewConversation = () => {
-    const now = new Date()
-    const conv: Conversation = {
-      id: Date.now().toString(),
-      title: "New conversation",
-      messages: [
-        {
-          role: "assistant",
-          content:
-            "Welcome to Privia. I’m your private workspace assistant—ask anything about your workstreams, documents, or product plans and I’ll keep it organized here.",
-          timestamp: now,
-        },
-      ],
-      createdAt: now,
-      updatedAt: now,
-    }
-    newConversation(conv)
-  }
-
-  const handleDeleteConversation = (id: string) => {
-    deleteConversation(id)
-  }
-
-  const handleLogout = () => {
-    clearAuth()
-    window.location.href = "/login"
-  }
-
-  if (!authChecked) {
-    return null
-  }
+  if (!authChecked) return null
 
   return (
-    <div className={cn("flex h-screen w-full flex-col md:flex-row overflow-hidden bg-background")}>
-      <ChatSidebar
-        conversations={state.conversations}
-        currentId={currentConversationId}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        onNewConversation={createNewConversation}
-        onDelete={handleDeleteConversation}
-        onSelect={setCurrentConversation}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        handleLogout={handleLogout}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
-
+    <div className={cn("flex h-full w-full flex-col overflow-hidden")}>
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
 
       <div className="flex flex-1 overflow-hidden">
         <div className="mx-auto flex w-full max-w-5xl flex-col relative">
-          <ScrollArea className="flex-1 px-6 py-8" onScrollCapture={handleScroll}>
+          <ScrollArea
+            className="flex-1 px-6 py-8"
+            onScrollCapture={handleScroll}
+          >
             <ChatMessages
               messages={visibleMessages}
               isLoading={isLoading}
@@ -200,19 +182,20 @@ export default function PriviaChat() {
             <div ref={messagesEndRef} />
           </ScrollArea>
 
-          <ChatScrollButton visible={showScrollButton} onClick={scrollToBottom} />
+          <ChatScrollButton
+            visible={showScrollButton}
+            onClick={scrollToBottom}
+          />
 
-          <div className="">
-            <ChatComposer
-              value={input}
-              onChange={setInput}
-              onSend={() => handleSend()}
-              onNewConversation={createNewConversation}
-              onStop={stopGeneration}
-              isLoading={isLoading}
-              isConnected={isConnected}
-            />
-          </div>
+          <ChatComposer
+            value={input}
+            onChange={setInput}
+            onSend={() => handleSend()}
+            onNewConversation={newConversation}
+            onStop={stopGeneration}
+            isLoading={isLoading}
+            isConnected={isConnected}
+          />
         </div>
       </div>
     </div>
