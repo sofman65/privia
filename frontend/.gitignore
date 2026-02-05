@@ -1,5 +1,63 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+
+# BACKEND
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# =========================
+# Virtual Environments
+# =========================
+venv/
+.env
+.env.*
+!.env.example
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Testing / Coverage
+# =========================
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Uvicorn / FastAPI
+# =========================
+*.pid
+*.sock
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# FRONTEND
 # dependencies
 /node_modules
 
