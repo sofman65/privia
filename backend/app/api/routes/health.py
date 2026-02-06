@@ -12,7 +12,7 @@ START_TIME = time.monotonic()
 
 
 @router.get(
-    "/health",
+    "/",
     summary="Health check",
 )
 def health_check():
@@ -20,6 +20,6 @@ def health_check():
         "status": "ok",
         "version": "0.1.0",
         "env": settings.env,
-        "uptime_seconds": round(time.monotonic() - START_TIME, 3),
+        "uptime": round(time.monotonic() - START_TIME, 3),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }

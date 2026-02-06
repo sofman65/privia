@@ -7,3 +7,6 @@ httpx
 python-dotenv
 pydantic-settings
 scalar_fastapi
+python-jose
+pytest
+pytest-asyncio

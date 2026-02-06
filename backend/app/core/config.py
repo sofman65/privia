@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     env: str = "development"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
-    secret_key: str
+    secret_key: str = "dev-secret-change-later"
     allowed_origins: list[str] = ["http://localhost:3000"]
 
     model_config = SettingsConfigDict(
