@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 import type { Conversation, ChatSidebarProps } from "@/types/conversation"
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar"
 import { useUserProfile } from "@/hooks/useUserProfile"
+import { clearAuth } from "@/lib/auth"
 
 const formatRelativeTime = (date: Date, nowMs: number) => {
   const diff = nowMs - new Date(date).getTime()
@@ -26,17 +27,24 @@ const formatRelativeTime = (date: Date, nowMs: number) => {
   return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }
 
+const defaultHandleLogout = () => {
+  clearAuth()
+  if (typeof window !== "undefined") {
+    window.location.href = "/login"
+  }
+}
+
 export function ChatSidebar({
-  conversations,
+  conversations = [],
   currentId,
   sidebarOpen,
   setSidebarOpen,
   onNewConversation,
   onDelete,
   onSelect,
-  searchQuery,
+  searchQuery = "",
   setSearchQuery,
-  handleLogout,
+  handleLogout = defaultHandleLogout,
   onOpenSettings,
 }: ChatSidebarProps) {
   const userInfo = useUserProfile()

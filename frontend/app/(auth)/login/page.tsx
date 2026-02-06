@@ -26,7 +26,7 @@ export default function LoginPage() {
     try {
       const data = await login(email, password)
       storeAuth(data.access_token, data.user)
-      router.push("/")
+      router.push("/app")
     } catch (err: any) {
       setError(err.message || "Check your credentials and try again")
     } finally {
