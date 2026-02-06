@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.core.database import engine, Base
 from app.api.router import api_router
 
 
@@ -26,6 +27,11 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(api_router)
+
+    @app.on_event("startup")
+    def _create_tables():
+        # Ensure tables exist for dev/test runs without requiring a manual migration step.
+        Base.metadata.create_all(bind=engine)
 
     logger.info("🚀 Privia API started")
     logger.info(

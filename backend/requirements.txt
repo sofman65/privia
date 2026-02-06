@@ -10,3 +10,7 @@ scalar_fastapi
 python-jose
 pytest
 pytest-asyncio
+alembic>=1.13
+sqlalchemy
+email-validator
+pydantic[email]
