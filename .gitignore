@@ -15,9 +15,13 @@ dist/
 
 # Virtual Environments
 venv/
+.venv/
 .env
 .env.*
 !.env.example
+
+# Local SQLite dev database
+backend/privia.db
 
 # Logs
 *.log
