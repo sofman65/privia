@@ -4,6 +4,8 @@ import type React from "react"
 import { useState, createContext, useContext } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { IconMenu2, IconX } from "@tabler/icons-react"
+import Link from "next/link"
+import { Logo } from "@/components/logo"
 
 interface Links {
   label: string
@@ -106,7 +108,9 @@ export const MobileSidebar = ({ className, children, ...props }: React.Component
           <button onClick={() => setOpen(!open)} className="p-1">
             <IconMenu2 className="h-6 w-6 text-foreground" />
           </button>
-          <span className="text-base font-semibold text-foreground">Privia</span>
+          <Link href="/app" aria-label="Go to Privia home" className="flex items-center">
+            <Logo variant="brand" mode="light" className="h-7 w-auto" />
+          </Link>
         </div>
         <AnimatePresence>
           {open && (

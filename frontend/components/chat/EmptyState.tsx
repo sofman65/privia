@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect"
 import { motion } from "framer-motion"
 import { FileText, Shield, Zap, BookOpen } from "lucide-react"
+import { useUserProfile } from "@/hooks/useUserProfile"
 
 type Props = {
   onPromptClick: (prompt: string) => void
@@ -34,18 +35,22 @@ const starterPrompts = [
 ]
 
 export function EmptyState({ onPromptClick }: Props) {
-  const words = [
-    {
-      text: "Welcome",
-    },
-    {
-      text: "to",
-    },
-    {
-      text: "Privia",
-      className: "text-primary dark:text-primary",
-    },
-  ]
+  const userInfo = useUserProfile()
+
+  const words = userInfo?.full_name
+    ? [
+        {
+          text: "Welcome",
+        },
+        {
+          text: userInfo.full_name,
+        },
+      ]
+    : [
+        {
+          text: "Welcome",
+        },
+      ]
 
   return (
     <div className="flex flex-col items-center justify-center h-full px-6 py-12">

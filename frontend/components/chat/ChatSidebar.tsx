@@ -9,6 +9,7 @@ import { Logo } from "@/components/logo"
 import { Plus, MessageSquare, Trash2, Search, Settings, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 import type { Conversation, ChatSidebarProps } from "@/types/chat"
 import { Sidebar, SidebarBody } from "@/components/ui/sidebar"
 import { useUserProfile } from "@/hooks/useUserProfile"
@@ -100,23 +101,24 @@ export function ChatSidebar({
               collapsed && "justify-center",
             )}
           >
-            <div className="flex items-center justify-center overflow-hidden">
-              <Logo variant="brand" mode="light" className="h-8 w-auto" />
-            </div>
+            <Link
+              href="/app"
+              aria-label="Go to Privia home"
+              className={cn("flex items-center gap-3 transition-opacity hover:opacity-90", collapsed && "justify-center")}
+            >
+              <div className="flex items-center justify-center overflow-hidden">
+                <Logo variant="brand" mode="light" className="h-20 w-auto" />
+              </div>
 
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex flex-col"
-              >
-                <span className="text-sm font-semibold tracking-tight">Privia</span>
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                  Online • Workspace assistant
-                </span>
-              </motion.div>
-            )}
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex flex-col"
+                >
+                </motion.div>
+              )}
+            </Link>
           </div>
 
           <div className="px-3 py-3">
@@ -125,7 +127,9 @@ export function ChatSidebar({
                 <Button
                   onClick={onNewConversation}
                   className={cn(
-                    "w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-md transition-all shadow-sm",
+                    "group/btn relative w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white",
+                    "shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]",
+                    "dark:bg-zinc-900 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]",
                     collapsed && "px-0 justify-center"
                   )}
                 >
