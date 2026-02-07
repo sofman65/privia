@@ -46,8 +46,18 @@ export function ChatComposer({
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-3">
- 
+    <div className="mx-auto w-full max-w-3xl px-4">
+      <div className="flex h-14 items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-12 w-12 rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+          onClick={onNewConversation}
+          aria-label="New conversation"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
 
         <div className="flex-1 min-w-0">
           <PlaceholdersAndVanishInput
@@ -56,9 +66,10 @@ export function ChatComposer({
               setLocalValue(e.target.value)
               onChange(e.target.value)
             }}
-            onSubmit={handleSubmit}
-          />
+          onSubmit={handleSubmit}
+        />
         </div>
+      </div>
 
       <p className="mt-3 text-center text-xs text-muted-foreground">
         Privia · Privacy-first AI chat workspace {isConnected ? "• Connected" : "• Offline mode"}
