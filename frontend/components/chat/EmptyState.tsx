@@ -61,7 +61,7 @@ export function EmptyState({ onPromptClick }: Props) {
         className="flex flex-col items-center max-w-3xl"
       >
         <div className="flex h-28 w-28 items-center justify-center mb-6 overflow-hidden">
-          <Logo variant="brand" mode="light" className="h-20 w-auto" />
+          <Logo variant="flower" mode="light" className="h-20 w-auto" />
         </div>
 
         <TypewriterEffectSmooth words={words} className="mb-3" cursorClassName="bg-accent" />
