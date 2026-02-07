@@ -1,37 +1,35 @@
+import Image from "next/image";
 import * as React from "react";
 
+import brandLight from "../public/LOGO.png";
+import brandDark from "../public/brand-logo-white.png";
+import flowerLight from "../public/flower-black.png";
+import flowerDark from "../public/flower-white.png";
+
 type LogoProps = {
+  /** Choose full wordmark or the flower mark */
+  variant?: "brand" | "flower";
+  /** Pick the correct contrast for the background the logo sits on */
+  mode?: "light" | "dark";
+  /** Whether to eagerly load this instance (e.g., above the fold) */
+  priority?: boolean;
   className?: string;
 };
 
-export function Logo({ className = "h-12 w-12" }: LogoProps) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="Privia logo"
-    >
-      {/* Background */}
-      
+export function Logo({
+  variant = "brand",
+  mode = "light",
+  className = "h-20 w-auto",
+  priority = false,
+}: LogoProps) {
+  const src =
+    variant === "brand"
+      ? mode === "dark"
+        ? brandDark
+        : brandLight
+      : mode === "dark"
+        ? flowerDark
+        : flowerLight;
 
-      {/* Circle container */}
-      <circle
-        cx="64"
-        cy="64"
-        r="44"
-        stroke="#E7EDF8"
-        strokeWidth="6"
-        fill="none"
-      />
-
-      {/* P mark */}
-      <path
-        fill="#E7EDF8"
-        d="M46 36h24c15 0 25 9 25 23 0 13.5-9.8 22.5-24 22.5H58v15H46V36Zm22.8 33c6 0 9.8-3.6 9.8-9s-3.8-8.7-9.8-8.7H58V69h10.8Z"
-      />
-    </svg>
-  );
+  return <Image src={src} alt="Privia logo" className={className} priority={priority} />;
 }

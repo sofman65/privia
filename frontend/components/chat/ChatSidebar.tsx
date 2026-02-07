@@ -100,8 +100,8 @@ export function ChatSidebar({
               collapsed && "justify-center",
             )}
           >
-            <div className="h-10 w-10 rounded-lg bg-sidebar-primary flex items-center justify-center shadow-sm">
-              <Logo className="h-6 w-6 text-sidebar-primary-foreground" />
+            <div className="flex items-center justify-center overflow-hidden">
+              <Logo variant="brand" mode="light" className="h-8 w-auto" />
             </div>
 
             {!collapsed && (

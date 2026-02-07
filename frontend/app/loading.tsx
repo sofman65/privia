@@ -6,7 +6,7 @@ export default function Loading() {
       <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-card px-5 py-4 shadow-lg animate-in fade-in zoom-in-95">
         {/* Brand */}
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-          <Logo className="h-6 w-6 text-primary animate-pulse" />
+          <Logo variant="brand" mode="light" className="h-6 w-auto animate-pulse" />
         </div>
 
         {/* Copy */}

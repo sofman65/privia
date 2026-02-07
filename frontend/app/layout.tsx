@@ -20,27 +20,39 @@ export const metadata: Metadata = {
     title: "Privia | Privacy-first AI chat workspace",
     description:
       "A calm, reliable AI assistant built for teams that need trustworthy answers and organized conversations.",
-    images: ["/ketak-sima.png"],
+    images: ["/LOGO.png"],
     url: "https://privia.app",
     siteName: "Privia",
     locale: "en",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privia | Privacy-first AI chat workspace",
+    description:
+      "A calm, reliable AI assistant built for teams that need trustworthy answers and organized conversations.",
+    images: ["/LOGO.png"],
+    creator: "@Privia",
+  },
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: "/icon-dark-32x32.png",
+      },
+      {
+        url: "/flower-black.png",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: "/flower-white.png",
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/icon.svg",
-        type: "image/svg+xml",
+        url: "/LOGO.png",
+        type: "image/png",
       },
     ],
+    shortcut: "/icon-dark-32x32.png",
     apple: "/apple-icon.png",
   },
 }

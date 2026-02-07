@@ -55,8 +55,8 @@ export function EmptyState({ onPromptClick }: Props) {
         transition={{ duration: 0.5 }}
         className="flex flex-col items-center max-w-3xl"
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary text-primary-foreground mb-6 shadow-lg ring-2 ring-accent/20 hover:ring-accent/50 transition-all">
-          <Logo className="h-16 w-16" />
+        <div className="flex h-20 w-20 items-center justify-center mb-6 overflow-hidden">
+          <Logo variant="brand" mode="light" className="h-16 w-auto" />
         </div>
 
         <TypewriterEffectSmooth words={words} className="mb-3" cursorClassName="bg-accent" />

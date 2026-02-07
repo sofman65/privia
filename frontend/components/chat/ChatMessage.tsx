@@ -18,7 +18,7 @@ export function ChatMessage({ message, isLast, isLoading, onRegenerate }: Props)
     <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"} group`}>
       {message.role === "assistant" && (
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Logo className="h-5 w-5" />
+          <Logo variant="flower" mode="dark" className="h-5 w-5" />
         </div>
       )}
 

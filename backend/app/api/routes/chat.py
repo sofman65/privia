@@ -2,7 +2,14 @@ from datetime import datetime
 import json
 from typing import Generator, Iterable
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -16,6 +23,7 @@ router = APIRouter(tags=["chat"])
 
 
 # Helpers -----------------------------------------------------------------
+
 
 def _generate_answer(question: str) -> str:
     """Placeholder answer generator. Replace with real model/RAG later."""
@@ -34,7 +42,9 @@ def _get_or_create_conversation(
     if conversation_id:
         conv = db.get(Conversation, conversation_id)
         if not conv or conv.user_id != user_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
+            )
         return conv
 
     conv = Conversation(user_id=user_id, title=title or "New conversation")
@@ -46,7 +56,8 @@ def _get_or_create_conversation(
 
 def _conversation_out(conv: Conversation) -> ConversationOut:
     messages = [
-        MessageOut(role=m.role, content=m.content, timestamp=m.timestamp) for m in conv.messages
+        MessageOut(role=m.role, content=m.content, timestamp=m.timestamp)
+        for m in conv.messages
     ]
     return ConversationOut(
         id=conv.id,
@@ -58,6 +69,7 @@ def _conversation_out(conv: Conversation) -> ConversationOut:
 
 
 # REST endpoints ----------------------------------------------------------
+
 
 @router.post("/query", response_model=QueryResponse, summary="Chat via REST")
 def query_chat(
@@ -132,6 +144,7 @@ def create_chat_conversation(
 
 
 # WebSocket endpoint ------------------------------------------------------
+
 
 @router.websocket("/ws/chat")
 async def chat_ws(websocket: WebSocket):

@@ -37,10 +37,10 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background to-primary/5">
       <Card className="max-w-md w-full shadow-2xl">
         <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Logo className="h-16 w-16 text-primary" />
+          <div className="mx-auto h-20 w-28 flex items-center justify-center">
+            <Logo variant="brand" mode="light" className="h-16 w-auto" priority />
           </div>
-          <CardTitle className="text-2xl font-bold">Create your Privia account</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
           <CardDescription>Set up access to your AI chat workspace.</CardDescription>
         </CardHeader>
 

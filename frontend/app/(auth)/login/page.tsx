@@ -38,11 +38,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
-            <Logo className="h-16 w-16 text-primary" />
+          <div className="mx-auto flex h-20 w-28 items-center justify-center">
+            <Logo variant="brand" mode="light" className="h-20 w-auto" priority />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Sign in to Privia</CardTitle>
             <CardDescription className="mt-2">
               Privacy-aware AI chat workspace for product teams.
             </CardDescription>
