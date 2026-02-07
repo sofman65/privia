@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Logo } from "@/components/logo"
 import { Loader2 } from "lucide-react"
+import { IconBrandGithub, IconBrandGoogle } from "@tabler/icons-react"
 import Link from "next/link"
 import { signup } from "@/lib/api/auth"
 import { cn } from "@/lib/utils"
@@ -99,6 +100,17 @@ export default function SignupPage() {
             <BottomGradient />
           </button>
 
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            Or continue with
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <OAuthButton icon={<IconBrandGoogle className="h-4 w-4" />} label="Google" />
+            <OAuthButton icon={<IconBrandGithub className="h-4 w-4" />} label="GitHub" />
+          </div>
+
           <p className="text-sm text-center mt-2">
             Already have an account?{" "}
             <Link href="/login" className="font-semibold text-primary">
@@ -117,6 +129,19 @@ const BottomGradient = () => {
       <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
       <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
     </>
+  )
+}
+
+const OAuthButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => {
+  return (
+    <button
+      type="button"
+      className="group/btn relative flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gray-50 px-4 font-medium text-black shadow-input transition hover:shadow-none dark:bg-zinc-900 dark:text-white dark:shadow-[0px_0px_1px_1px_#262626]"
+    >
+      {icon}
+      <span className="text-sm">{label}</span>
+      <BottomGradient />
+    </button>
   )
 }
 
