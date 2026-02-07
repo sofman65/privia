@@ -37,7 +37,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon-dark-32x32.png",
+        url: "/favicon-32x32.png",
+        type: "image/png",
+        sizes: "32x32",
       },
       {
         url: "/flower-black.png",
@@ -52,7 +54,7 @@ export const metadata: Metadata = {
         type: "image/png",
       },
     ],
-    shortcut: "/icon-dark-32x32.png",
+    shortcut: "/favicon-32x32.png",
     apple: "/apple-icon.png",
   },
 }
