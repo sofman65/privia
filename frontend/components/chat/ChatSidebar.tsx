@@ -49,6 +49,7 @@ export function ChatSidebar({
   onOpenSettings,
 }: ChatSidebarProps) {
   const userInfo = useUserProfile()
+  const [sidebarOpenInternal, setSidebarOpenInternal] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [nowMs, setNowMs] = useState<number | null>(null)
 
@@ -61,7 +62,10 @@ export function ChatSidebar({
     return () => query.removeEventListener("change", update)
   }, [])
 
-  const collapsed = useMemo(() => !sidebarOpen && isMobile, [sidebarOpen, isMobile])
+  const open = sidebarOpen ?? sidebarOpenInternal
+  const setOpen = setSidebarOpen ?? setSidebarOpenInternal
+
+  const collapsed = useMemo(() => isMobile && !open, [isMobile, open])
 
   useEffect(() => {
     // Avoid using Date.now() during the first render to prevent SSR/CSR mismatch
@@ -93,7 +97,7 @@ export function ChatSidebar({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <Sidebar open={sidebarOpen} setOpen={setSidebarOpen}>
+      <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between bg-sidebar text-sidebar-foreground border-r border-sidebar-border/80">
           <div
             className={cn(
@@ -106,8 +110,8 @@ export function ChatSidebar({
               aria-label="Go to Privia home"
               className={cn("flex items-center gap-3 transition-opacity hover:opacity-90", collapsed && "justify-center")}
             >
-              <div className="flex items-center justify-center overflow-hidden">
-                <Logo variant="brand" mode="light" className="h-20 w-auto" />
+              <div className="flex items-center justify-center overflow-hidden pl-10">
+                <Logo variant="brand" mode="light" className="h-20 w-auto md:h-20" />
               </div>
 
               {!collapsed && (

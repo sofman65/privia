@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
@@ -62,7 +60,7 @@ export function PlaceholdersAndVanishInput({
     ctx.clearRect(0, 0, 800, 800)
     const computedStyles = getComputedStyle(inputRef.current)
 
-    const fontSize = Number.parseFloat(computedStyles.getPropertyValue("font-size"))
+    const fontSize = parseFloat(computedStyles.getPropertyValue("font-size"))
     ctx.font = `${fontSize * 2}px ${computedStyles.fontFamily}`
     ctx.fillStyle = "#FFF"
     ctx.fillText(value, 16, 40)
@@ -72,9 +70,9 @@ export function PlaceholdersAndVanishInput({
     const newData: any[] = []
 
     for (let t = 0; t < 800; t++) {
-      const i = 4 * t * 800
+      let i = 4 * t * 800
       for (let n = 0; n < 800; n++) {
-        const e = i + 4 * n
+        let e = i + 4 * n
         if (pixelData[e] !== 0 && pixelData[e + 1] !== 0 && pixelData[e + 2] !== 0) {
           newData.push({
             x: n,
@@ -98,7 +96,7 @@ export function PlaceholdersAndVanishInput({
   }, [value, draw])
 
   const animate = (start: number) => {
-    const animateFrame = (pos = 0) => {
+    const animateFrame = (pos: number = 0) => {
       requestAnimationFrame(() => {
         const newArr = []
         for (let i = 0; i < newDataRef.current.length; i++) {
@@ -121,7 +119,7 @@ export function PlaceholdersAndVanishInput({
         if (ctx) {
           ctx.clearRect(pos, 0, 800, 800)
           newDataRef.current.forEach((t) => {
-            const { x: n, y: i, r: s, color } = t
+            const { x: n, y: i, r: s, color: color } = t
             if (n > pos) {
               ctx.beginPath()
               ctx.rect(n, i, s, s)
@@ -152,9 +150,9 @@ export function PlaceholdersAndVanishInput({
     setAnimating(true)
     draw()
 
-    const value = inputRef.current?.value || ""
-    if (value && inputRef.current) {
-      const maxX = newDataRef.current.reduce((prev, current) => (current.x > prev ? current.x : prev), 0)
+    const current = inputRef.current?.value || ""
+    if (current && inputRef.current) {
+      const maxX = newDataRef.current.reduce((prev, c) => (c.x > prev ? c.x : prev), 0)
       animate(maxX)
     }
   }
@@ -168,7 +166,8 @@ export function PlaceholdersAndVanishInput({
   return (
     <form
       className={cn(
-        "w-full relative max-w-xl mx-auto bg-background dark:bg-zinc-800 h-12 rounded-full overflow-hidden shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),_0px_1px_0px_0px_rgba(25,28,33,0.02),_0px_0px_0px_1px_rgba(25,28,33,0.08)] transition duration-200 border border-border",
+        "w-full relative max-w-xl mx-auto bg-white dark:bg-zinc-800 h-12 rounded-full overflow-hidden shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),_0px_1px_0px_0px_rgba(25,28,33,0.02),_0px_0px_0px_1px_rgba(25,28,33,0.08)] transition duration-200",
+        value && "bg-gray-50",
       )}
       onSubmit={handleSubmit}
     >
@@ -191,7 +190,7 @@ export function PlaceholdersAndVanishInput({
         value={value}
         type="text"
         className={cn(
-          "w-full relative text-sm sm:text-base z-50 border-none dark:text-white bg-transparent text-foreground h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
+          "w-full relative text-sm sm:text-base z-50 border-none dark:text-white bg-transparent text-black h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
           animating && "text-transparent dark:text-transparent",
         )}
       />
@@ -199,7 +198,7 @@ export function PlaceholdersAndVanishInput({
       <button
         disabled={!value}
         type="submit"
-        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 rounded-full disabled:bg-muted bg-primary dark:bg-primary dark:disabled:bg-muted transition duration-200 flex items-center justify-center"
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 rounded-full disabled:bg-gray-100 bg-black dark:bg-zinc-900 dark:disabled:bg-zinc-800 transition duration-200 flex items-center justify-center"
       >
         <motion.svg
           xmlns="http://www.w3.org/2000/svg"
@@ -211,7 +210,7 @@ export function PlaceholdersAndVanishInput({
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-primary-foreground h-4 w-4"
+          className="text-gray-300 h-4 w-4"
         >
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <motion.path
@@ -254,7 +253,7 @@ export function PlaceholdersAndVanishInput({
                 duration: 0.3,
                 ease: "linear",
               }}
-              className="dark:text-zinc-500 text-sm sm:text-base font-normal text-muted-foreground pl-4 sm:pl-12 text-left w-[calc(100%-2rem)] truncate"
+              className="dark:text-zinc-500 text-sm sm:text-base font-normal text-neutral-500 pl-4 sm:pl-12 text-left w-[calc(100%-2rem)] truncate"
             >
               {placeholders[currentPlaceholder]}
             </motion.p>

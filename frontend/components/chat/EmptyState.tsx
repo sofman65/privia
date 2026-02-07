@@ -60,8 +60,8 @@ export function EmptyState({ onPromptClick }: Props) {
         transition={{ duration: 0.5 }}
         className="flex flex-col items-center max-w-3xl"
       >
-        <div className="flex h-20 w-20 items-center justify-center mb-6 overflow-hidden">
-          <Logo variant="brand" mode="light" className="h-16 w-auto" />
+        <div className="flex h-28 w-28 items-center justify-center mb-6 overflow-hidden">
+          <Logo variant="brand" mode="light" className="h-20 w-auto" />
         </div>
 
         <TypewriterEffectSmooth words={words} className="mb-3" cursorClassName="bg-accent" />
@@ -100,20 +100,7 @@ export function EmptyState({ onPromptClick }: Props) {
           })}
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <span>Privacy-first by default</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            <span>Grounded answers from your workspace</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span>Ready to plug into your FastAPI backend</span>
-          </div>
-        </div>
+
       </motion.div>
     </div>
   )

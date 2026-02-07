@@ -20,7 +20,6 @@ export default function PriviaChatPage() {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [useSSE, setUseSSE] = useState(true)
-  const [authChecked, setAuthChecked] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -56,9 +55,7 @@ export default function PriviaChatPage() {
     const token = getToken()
     if (!token) {
       window.location.href = "/login"
-      return
     }
-    setAuthChecked(true)
   }, [])
 
   // --- Streaming handlers
@@ -161,16 +158,14 @@ export default function PriviaChatPage() {
     }
   }, [handleSend, isLoading, messages])
 
-  if (!authChecked) return null
-
   return (
     <div className={cn("flex h-full w-full flex-col overflow-hidden")}>
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="mx-auto flex w-full max-w-5xl flex-col relative">
+      <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className="mx-auto flex w-full max-w-5xl flex-col relative h-full min-h-0">
           <ScrollArea
-            className="flex-1 px-6 py-8"
+            className="flex-1 h-full px-4 py-6 md:px-6 md:py-8 pb-28 min-h-0"
             onScrollCapture={handleScroll}
           >
             <ChatMessages
