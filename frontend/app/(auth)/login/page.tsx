@@ -2,14 +2,13 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { login } from "@/lib/api/auth"
 import { storeAuth } from "@/lib/auth"
+import { cn } from "@/lib/utils"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -36,78 +35,102 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="space-y-4 text-center">
+      <div className="shadow-input w-full max-w-lg rounded-none bg-white p-6 md:rounded-2xl md:p-10 dark:bg-black border border-border/60">
+        <div className="flex flex-col items-center space-y-3 text-center">
           <div className="mx-auto flex h-20 w-28 items-center justify-center">
             <Logo variant="brand" mode="light" className="h-20 w-auto" priority />
           </div>
-          <div>
-            <CardDescription className="mt-2">
-              Privacy-aware AI chat workspace for product teams.
-            </CardDescription>
-          </div>
-        </CardHeader>
+          <h1 className="text-2xl font-bold">Login</h1>
+          <p className="text-sm text-muted-foreground">
+            Privacy-aware AI chat workspace for product teams.
+          </p>
+        </div>
 
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Work email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11"
-              />
+        <form onSubmit={handleLogin} className="mt-8 space-y-4">
+          <LabelInputContainer>
+            <label htmlFor="email" className="text-sm font-medium text-foreground">
+              Work email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </LabelInputContainer>
+
+          <LabelInputContainer>
+            <label htmlFor="password" className="text-sm font-medium text-foreground">
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </LabelInputContainer>
+
+          {error && (
+            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
             </div>
+          )}
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                className="h-11"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={cn(
+              "group/btn relative block h-11 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white",
+              "shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]",
+              "dark:bg-zinc-900 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]",
+              "disabled:opacity-70 disabled:cursor-not-allowed"
             )}
+          >
+            {isLoading ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Signing in...
+              </span>
+            ) : (
+              "Sign in →"
+            )}
+            <BottomGradient />
+          </button>
 
-            <Button type="submit" className="h-11 w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
-
-            <div className="text-center text-sm text-muted-foreground mt-1">
-              Don’t have an account?{" "}
-              <Link href="/signup" className="font-semibold text-primary hover:underline">
-                Create one
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="text-center text-sm text-muted-foreground mt-1">
+            Don’t have an account?{" "}
+            <Link href="/signup" className="font-semibold text-primary hover:underline">
+              Create one
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   )
+}
+
+const BottomGradient = () => {
+  return (
+    <>
+      <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+    </>
+  )
+}
+
+const LabelInputContainer = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) => {
+  return <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
 }
