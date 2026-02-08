@@ -1,6 +1,12 @@
 # Privia
 
+
+![Privia Logo](frontend/public/LOGO.png)
+
+
 A privacy-first AI chat workspace for teams. Built with FastAPI, Next.js, SQLite, and a pluggable inference engine.
+
+
 
 ---
 
