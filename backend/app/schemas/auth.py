@@ -20,8 +20,9 @@ class SignupRequest(BaseModel):
 
 class OAuthExchangeRequest(BaseModel):
     """Payload the frontend sends after NextAuth completes OAuth."""
-    provider: str                       # "google" | "github"
-    provider_account_id: str            # unique id from the provider
+
+    provider: str  # "google" | "github"
+    provider_account_id: str  # unique id from the provider
     email: EmailStr
     full_name: str | None = None
     avatar_url: str | None = None
