@@ -1,4 +1,3 @@
-// app/(marketing)/layout.tsx
 import type { ReactNode } from "react"
 import { Header } from "@/components/marketing/Header"
 import { Footer } from "@/components/marketing/Footer"
@@ -9,12 +8,10 @@ export default function MarketingLayout({
   children: ReactNode
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <Header />
 
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
 
       <Footer />
     </div>
