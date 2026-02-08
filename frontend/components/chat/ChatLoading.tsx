@@ -1,12 +1,9 @@
 import { Card } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/logo"
+import type { ChatLoadingProps } from "@/types/chat"
 
-type Props = {
-  variant: "rag" | "chat"
-}
-
-export function ChatLoading({ variant }: Props) {
+export function ChatLoading({ variant }: ChatLoadingProps) {
   const text = variant === "rag" ? "Collecting context from your workspace..." : "Drafting a response..."
   return (
     <div className="flex gap-4">

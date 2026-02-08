@@ -1,14 +1,7 @@
 import { ChatMessage } from "@/components/chat/ChatMessage"
 import { ChatLoading } from "@/components/chat/ChatLoading"
 import { EmptyState } from "@/components/chat/EmptyState"
-import type { Message } from "@/types/chat"
-
-interface ChatMessagesProps {
-  messages: Message[]
-  isLoading: boolean
-  onRegenerate: () => void
-  onPromptClick: (text: string) => void
-}
+import type { ChatMessagesProps } from "@/types/chat"
 
 export function ChatMessages({ messages, isLoading, onRegenerate, onPromptClick }: ChatMessagesProps) {
   const showEmptyState = messages.filter((m) => m.content?.trim() !== "").length === 0

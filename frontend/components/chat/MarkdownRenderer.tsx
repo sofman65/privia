@@ -8,11 +8,7 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { Button } from "@/components/ui/button"
 import { Copy, Check } from "lucide-react"
 import { useState } from "react"
-
-type Props = {
-  content: string
-  className?: string
-}
+import type { MarkdownRendererProps } from "@/types/chat"
 
 function CodeBlock({ inline, className, children, ...props }: any) {
   const [copied, setCopied] = useState(false)
@@ -58,7 +54,7 @@ function CodeBlock({ inline, className, children, ...props }: any) {
   )
 }
 
-export function MarkdownRenderer({ content, className }: Props) {
+export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   // Heuristic formatting for LLM outputs that forget to add blank lines before lists.
   const normalizedContent = content.replace(/([^\n])(\d+\.\s)/g, "$1\n$2").replace(/(:)(\s*)(\d+\.\s)/g, "$1\n$3")
 

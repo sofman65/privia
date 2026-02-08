@@ -1,11 +1,8 @@
 import { Badge } from "@/components/ui/badge"
 import { FileText } from "lucide-react"
+import type { ChatSourcesProps } from "@/types/chat"
 
-type Props = {
-  sources?: string[]
-}
-
-export function ChatSources({ sources }: Props) {
+export function ChatSources({ sources }: ChatSourcesProps) {
   if (!sources || sources.length === 0) return null
   return (
     <div className="flex flex-wrap gap-2">

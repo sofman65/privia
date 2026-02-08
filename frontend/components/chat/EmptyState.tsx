@@ -6,10 +6,7 @@ import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect"
 import { motion } from "framer-motion"
 import { FileText, Shield, Zap, BookOpen } from "lucide-react"
 import { useUserProfile } from "@/hooks/useUserProfile"
-
-type Props = {
-  onPromptClick: (prompt: string) => void
-}
+import type { EmptyStateProps } from "@/types/chat"
 
 const starterPrompts = [
   {
@@ -34,7 +31,7 @@ const starterPrompts = [
   },
 ]
 
-export function EmptyState({ onPromptClick }: Props) {
+export function EmptyState({ onPromptClick }: EmptyStateProps) {
   const userInfo = useUserProfile()
 
   const words = userInfo?.full_name

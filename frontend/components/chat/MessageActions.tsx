@@ -4,17 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Copy, RotateCw, ThumbsUp, ThumbsDown, Check } from "lucide-react"
 import { useState } from "react"
+import type { MessageActionsProps, MessageFeedback } from "@/types/chat"
 
-type Props = {
-  content: string
-  onRegenerate?: () => void
-  isAssistant: boolean
-  messageId?: string
-}
-
-export function MessageActions({ content, onRegenerate, isAssistant, messageId }: Props) {
+export function MessageActions({ content, onRegenerate, isAssistant, messageId }: MessageActionsProps) {
   const [copied, setCopied] = useState(false)
-  const [feedback, setFeedback] = useState<"up" | "down" | null>(null)
+  const [feedback, setFeedback] = useState<MessageFeedback>(null)
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content)
@@ -22,7 +16,7 @@ export function MessageActions({ content, onRegenerate, isAssistant, messageId }
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleFeedback = (type: "up" | "down") => {
+  const handleFeedback = (type: Exclude<MessageFeedback, null>) => {
     setFeedback(type)
     // TODO: Send feedback to backend
     console.log(`Feedback ${type} for message ${messageId}`)

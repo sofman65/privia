@@ -5,16 +5,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
 import { Square, Plus } from "lucide-react"
-
-export interface ChatComposerProps {
-  value: string
-  onChange: (value: string) => void
-  onSend: (text?: string) => void
-  onNewConversation: () => void
-  onStop: () => void
-  isLoading: boolean
-  isConnected: boolean
-}
+import type { ChatComposerProps } from "@/types/chat"
 
 export function ChatComposer({
   value,

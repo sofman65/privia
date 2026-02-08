@@ -15,13 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import type { SettingsModalProps } from "@/types/chat"
 
-type Props = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-export function SettingsModal({ open, onOpenChange }: Props) {
+export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { theme, setTheme } = useTheme()
   const [temperature, setTemperature] = useState(0.1)
   const [topK, setTopK] = useState(6)

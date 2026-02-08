@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from "react"
+
 export interface Message {
   role: "user" | "assistant" | "system"
   content: string
@@ -23,7 +25,7 @@ export interface ChatSidebarProps {
   conversations?: Conversation[]
   currentId?: string
   sidebarOpen?: boolean
-  setSidebarOpen?: (open: boolean) => void
+  setSidebarOpen?: Dispatch<SetStateAction<boolean>>
   onNewConversation: () => void
   onDelete: (id: string) => void
   onSelect: (id: string) => void
@@ -31,6 +33,66 @@ export interface ChatSidebarProps {
   setSearchQuery: (query: string) => void
   handleLogout?: () => void
   onOpenSettings?: () => void
+}
+
+export interface ChatComposerProps {
+  value: string
+  onChange: (value: string) => void
+  onSend: (text?: string) => void
+  onNewConversation: () => void
+  onStop: () => void
+  isLoading: boolean
+  isConnected: boolean
+}
+
+export interface ChatLoadingProps {
+  variant: "rag" | "chat"
+}
+
+export interface ChatMessageProps {
+  message: Message
+  isLast: boolean
+  isLoading: boolean
+  onRegenerate?: () => void
+}
+
+export interface ChatMessagesProps {
+  messages: Message[]
+  isLoading: boolean
+  onRegenerate: () => void
+  onPromptClick: (text: string) => void
+}
+
+export interface ChatScrollButtonProps {
+  visible: boolean
+  onClick: () => void
+}
+
+export interface ChatSourcesProps {
+  sources?: string[]
+}
+
+export interface EmptyStateProps {
+  onPromptClick: (prompt: string) => void
+}
+
+export interface MarkdownRendererProps {
+  content: string
+  className?: string
+}
+
+export type MessageFeedback = "up" | "down" | null
+
+export interface MessageActionsProps {
+  content: string
+  onRegenerate?: () => void
+  isAssistant: boolean
+  messageId?: string
+}
+
+export interface SettingsModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export type ChatAction =

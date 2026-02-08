@@ -4,16 +4,9 @@ import { Logo } from "@/components/logo"
 import { ChatSources } from "@/components/chat/ChatSources"
 import { MessageActions } from "@/components/chat/MessageActions"
 import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer"
-import type { Message } from "@/types/chat"
+import type { ChatMessageProps } from "@/types/chat"
 
-type Props = {
-  message: Message
-  isLast: boolean
-  isLoading: boolean
-  onRegenerate?: () => void
-}
-
-export function ChatMessage({ message, isLast, isLoading, onRegenerate }: Props) {
+export function ChatMessage({ message, isLast, isLoading, onRegenerate }: ChatMessageProps) {
   const timestamp =
     message.timestamp instanceof Date ? message.timestamp : new Date(message.timestamp as any)
 

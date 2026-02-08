@@ -1,10 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
-
-interface ChatScrollButtonProps {
-  visible: boolean
-  onClick: () => void
-}
+import type { ChatScrollButtonProps } from "@/types/chat"
 
 export function ChatScrollButton({ visible, onClick }: ChatScrollButtonProps) {
   if (!visible) return null
