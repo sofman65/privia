@@ -1,4 +1,4 @@
-import { ChatAction, ChatState, Conversation } from "@/types/conversation"
+import { ChatAction, ChatState, Conversation } from "@/types/chat"
 import { Message } from "@/types/chat"
 
 const createWelcomeConversation = (): Conversation => {
@@ -85,7 +85,7 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
             newMessages[newMessages.length - 1] = {
               ...last,
               sources: action.sources,
-              mode: action.mode ?? last.mode,
+              mode: (action.mode as Message["mode"]) ?? last.mode,
             }
           }
           updatedMessages = newMessages
@@ -93,7 +93,7 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
           const newMessages = [...conv.messages]
           const last = newMessages[newMessages.length - 1]
           if (last?.role === "assistant") {
-            newMessages[newMessages.length - 1] = { ...last, mode: action.mode }
+            newMessages[newMessages.length - 1] = { ...last, mode: action.mode as Message["mode"] }
           }
           updatedMessages = newMessages
         } else if (action.type === "UPDATE_TITLE") {

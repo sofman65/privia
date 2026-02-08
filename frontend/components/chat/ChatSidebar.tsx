@@ -42,6 +42,7 @@ export function ChatSidebar({
   sidebarOpen,
   setSidebarOpen,
   onNewConversation,
+  isCreatingChat = false,
   onDelete,
   onSelect,
   searchQuery = "",
@@ -135,15 +136,17 @@ export function ChatSidebar({
               <TooltipTrigger asChild>
                 <Button
                   onClick={onNewConversation}
+                  disabled={isCreatingChat}
                   className={cn(
                     "group/btn relative w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white",
                     "shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]",
                     "dark:bg-zinc-900 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]",
-                    collapsed && "px-0 justify-center"
+                    collapsed && "px-0 justify-center",
+                    isCreatingChat && "opacity-60 cursor-not-allowed"
                   )}
                 >
                   <Plus className="h-5 w-5" />
-                  {!collapsed && <span className="ml-2">New chat</span>}
+                  {!collapsed && <span className="ml-2">{isCreatingChat ? "Creating…" : "New chat"}</span>}
                 </Button>
               </TooltipTrigger>
               {collapsed && (

@@ -41,11 +41,27 @@ def _get_or_create_conversation(
             )
         return conv
 
-    conv = Conversation(user_id=user_id, title=title or "New conversation")
+    # Reuse existing empty conversation (same idempotent rule as POST /conversations)
+    existing = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == user_id, Conversation.status == "empty")
+        .first()
+    )
+    if existing:
+        return existing
+
+    conv = Conversation(user_id=user_id, title=title or "New conversation", status="empty")
     db.add(conv)
     db.commit()
     db.refresh(conv)
     return conv
+
+
+def _activate_conversation(conv: Conversation, db: Session) -> None:
+    """Promote from 'empty' → 'active' on first user message."""
+    if conv.status == "empty":
+        conv.status = "active"
+        db.flush()
 
 
 def _build_context(
@@ -73,6 +89,9 @@ def query_chat(
     db: Session = Depends(get_db),
 ):
     conv = _get_or_create_conversation(db, user_id, payload.conversation_id)
+
+    # Promote empty → active on first user message
+    _activate_conversation(conv, db)
 
     # Persist user message
     db.add(Message(conversation_id=conv.id, role="user", content=payload.question))
@@ -110,6 +129,9 @@ def stream_chat(
     db: Session = Depends(get_db),
 ):
     conv = _get_or_create_conversation(db, user_id, payload.conversation_id)
+
+    # Promote empty → active on first user message
+    _activate_conversation(conv, db)
 
     # Persist user prompt
     db.add(Message(conversation_id=conv.id, role="user", content=payload.question))

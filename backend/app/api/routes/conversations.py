@@ -1,5 +1,7 @@
 """Conversation CRUD endpoints."""
 
+import time
+from collections import defaultdict
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -9,6 +11,7 @@ from app.core.deps import get_db, get_current_user
 from app.models.conversation import Conversation
 from app.models.message import Message
 from app.schemas.conversation import (
+    ConversationCreate,
     ConversationListItem,
     ConversationOut,
     ConversationUpdate,
@@ -16,6 +19,28 @@ from app.schemas.conversation import (
 )
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
+
+# ---------------------------------------------------------------------------
+# Layer 3 – Temporal rate limiting (in-memory, per user)
+# ---------------------------------------------------------------------------
+_NEW_CHAT_COOLDOWN = 3  # seconds
+_last_create_ts: dict[str, float] = defaultdict(float)
+
+
+def _check_rate_limit(user_id: str) -> None:
+    """Raise 429 if the user created a conversation too recently."""
+    now = time.monotonic()
+    if now - _last_create_ts[user_id] < _NEW_CHAT_COOLDOWN:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many new chats. Please wait a few seconds.",
+        )
+    _last_create_ts[user_id] = now
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
 def _conversation_out(conv: Conversation) -> ConversationOut:
@@ -26,6 +51,7 @@ def _conversation_out(conv: Conversation) -> ConversationOut:
     return ConversationOut(
         id=conv.id,
         title=conv.title,
+        status=conv.status,
         messages=messages,
         created_at=conv.created_at,
         updated_at=conv.updated_at,
@@ -43,6 +69,51 @@ def _own_conversation(
             detail="Conversation not found",
         )
     return conv
+
+
+# ---------------------------------------------------------------------------
+# Layer 2 – Idempotent CREATE (at most one empty conv per user)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "",
+    response_model=ConversationOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create or return empty conversation",
+)
+def create_conversation(
+    payload: ConversationCreate = ConversationCreate(),
+    user_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Idempotent new-chat endpoint.
+
+    - If the user already has an **empty** (no user messages) conversation,
+      return it instead of creating a new one.
+    - Otherwise enforce rate-limit and create a fresh one.
+    """
+    existing = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == user_id, Conversation.status == "empty")
+        .first()
+    )
+    if existing:
+        return _conversation_out(existing)
+
+    # Layer 3 – rate check (only when actually creating)
+    _check_rate_limit(user_id)
+
+    conv = Conversation(
+        user_id=user_id,
+        title=payload.title or "New conversation",
+        status="empty",
+    )
+    db.add(conv)
+    db.commit()
+    db.refresh(conv)
+    return _conversation_out(conv)
 
 
 @router.get(

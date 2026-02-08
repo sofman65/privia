@@ -13,6 +13,7 @@ import { useChatWS } from "@/hooks/useChatWS"
 import { useChatSSE } from "@/hooks/useChatSSE"
 
 import { clearAuth, getToken } from "@/lib/auth"
+import { createConversation } from "@/lib/api/conversations"
 import type { Conversation, Message } from "@/types/chat"
 
 import { cn } from "@/lib/utils"
@@ -162,24 +163,60 @@ export default function PriviaChatPage() {
     }
   }, [handleSend, isLoading, messages])
 
-  const handleNewConversation = useCallback(() => {
-    const now = new Date()
-    const conv: Conversation = {
-      id: crypto.randomUUID(),
-      title: "New conversation",
-      messages: [
-        {
-          role: "assistant",
-          content:
-            "Welcome to Privia. I'm your private workspace assistant—ask anything about your workstreams, documents, or product plans and I'll keep it organized here.",
-          timestamp: now,
-        },
-      ],
-      createdAt: now,
-      updatedAt: now,
+  const [isCreatingChat, setIsCreatingChat] = useState(false)
+
+  const hasEmptyActiveChat = useMemo(
+    () => state.conversations.some(
+      (c: Conversation) =>
+        c.messages.filter((m: Message) => m.role === "user").length === 0
+    ),
+    [state.conversations],
+  )
+
+  const handleNewConversation = useCallback(async () => {
+    // Layer 1 guards: block while in-flight, redirect to existing empty chat
+    if (isCreatingChat) return
+    if (hasEmptyActiveChat) {
+      const empty = state.conversations.find(
+        (c: Conversation) =>
+          c.messages.filter((m: Message) => m.role === "user").length === 0
+      )
+      if (empty) {
+        setCurrentConversation(empty.id)
+        return
+      }
     }
-    newConversation(conv)
-  }, [newConversation])
+
+    setIsCreatingChat(true)
+    try {
+      const apiConv = await createConversation()
+      const conv: Conversation = {
+        id: apiConv.id,
+        title: apiConv.title,
+        messages: apiConv.messages.map((m) => ({
+          role: m.role as Message["role"],
+          content: m.content,
+          timestamp: new Date(m.timestamp),
+        })),
+        createdAt: new Date(apiConv.created_at),
+        updatedAt: new Date(apiConv.updated_at),
+      }
+      // If backend returned a conv we already have locally, just select it
+      const alreadyLocal = state.conversations.find((c: Conversation) => c.id === conv.id)
+      if (alreadyLocal) {
+        setCurrentConversation(conv.id)
+      } else {
+        newConversation(conv)
+      }
+    } catch (err: any) {
+      // 429 = rate limited — no need to surface
+      if (err?.status !== 429) {
+        console.error("Failed to create conversation:", err)
+      }
+    } finally {
+      setIsCreatingChat(false)
+    }
+  }, [isCreatingChat, hasEmptyActiveChat, state.conversations, newConversation, setCurrentConversation])
 
   return (
     <div className="flex h-screen w-full min-h-0 overflow-hidden bg-background">
@@ -189,6 +226,7 @@ export default function PriviaChatPage() {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         onNewConversation={handleNewConversation}
+        isCreatingChat={isCreatingChat}
         onDelete={deleteConversation}
         onSelect={setCurrentConversation}
         searchQuery={searchQuery}
