@@ -97,6 +97,8 @@ export interface SettingsModalProps {
 }
 
 export type ChatAction =
+  | { type: "SET_CONVERSATIONS"; conversations: Conversation[]; currentConversationId?: string }
+  | { type: "REPLACE_CONVERSATION_ID"; oldId: string; newId: string }
   | { type: "ADD_USER_MESSAGE"; conversationId: string; content: string; timestamp: Date }
   | { type: "ADD_ASSISTANT_MESSAGE"; conversationId: string; content?: string; timestamp: Date }
   | { type: "UPDATE_ASSISTANT_MESSAGE"; conversationId: string; updater: (msg: Message) => Message }

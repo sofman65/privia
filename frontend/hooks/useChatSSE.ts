@@ -21,7 +21,7 @@ export function useChatSSE(handlers: Handlers) {
   handlersRef.current = handlers
 
   const sendMessage = useCallback(
-    async (question: string) => {
+    async (question: string, conversationId?: string) => {
       setIsLoading(true)
 
       // Create abort controller for this request
@@ -35,10 +35,13 @@ export function useChatSSE(handlers: Handlers) {
         }
         if (token) headers["Authorization"] = `Bearer ${token}`
 
+        const payload: { question: string; conversation_id?: string } = { question }
+        if (conversationId) payload.conversation_id = conversationId
+
         const response = await fetch(chatUrls.stream(), {
           method: "POST",
           headers,
-          body: JSON.stringify({ question }),
+          body: JSON.stringify(payload),
           signal: abortController.signal,
         })
 

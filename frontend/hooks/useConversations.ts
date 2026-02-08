@@ -11,6 +11,14 @@ export function useConversations() {
   const setCurrentConversation = (conversationId: string) =>
     dispatch({ type: "SET_CURRENT", conversationId })
 
+  const setConversations = (
+    conversations: Conversation[],
+    currentConversationId?: string,
+  ) => dispatch({ type: "SET_CONVERSATIONS", conversations, currentConversationId })
+
+  const replaceConversationId = (oldId: string, newId: string) =>
+    dispatch({ type: "REPLACE_CONVERSATION_ID", oldId, newId })
+
   const addUserMessage = (conversationId: string, content: string, timestamp = new Date()) =>
     dispatch({ type: "ADD_USER_MESSAGE", conversationId, content, timestamp })
 
@@ -38,6 +46,8 @@ export function useConversations() {
   return {
     state,
     currentConversation,
+    setConversations,
+    replaceConversationId,
     setCurrentConversation,
     addUserMessage,
     addAssistantMessage,

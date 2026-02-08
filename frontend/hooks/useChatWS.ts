@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { chatUrls, queryChat } from "@/lib/api/chat"
+import { getToken } from "@/lib/auth"
 
 type Handlers = {
   onSources: (sources: string[], mode?: string) => void
   onToken: (content: string, mode?: string) => void
-  onDone: () => void
+  onDone: (data?: any) => void
   onError: (msg: string) => void
 }
 
@@ -26,7 +27,12 @@ export function useChatWS(handlers: Handlers) {
         return
       }
       try {
-        const socket = new WebSocket(chatUrls.ws())
+        const token = getToken()
+        const baseWsUrl = chatUrls.ws()
+        const wsUrl = token
+          ? `${baseWsUrl}${baseWsUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
+          : baseWsUrl
+        const socket = new WebSocket(wsUrl)
 
         socket.onopen = () => {
           setIsConnected(true)
@@ -50,12 +56,9 @@ export function useChatWS(handlers: Handlers) {
             h.onSources(data.sources || [], data.mode)
           } else if (data.type === "token") {
             h.onToken(data.content, data.mode)
-            if (data.mode !== "rag") {
-              setIsLoading(false)
-            }
           } else if (data.type === "done") {
             setIsLoading(false)
-            h.onDone()
+            h.onDone(data)
           } else if (data.type === "error") {
             setIsLoading(false)
             h.onError(data.content || "Backend error")
@@ -75,24 +78,26 @@ export function useChatWS(handlers: Handlers) {
     }
   }, [])
 
-  const sendMessage = async (question: string) => {
+  const sendMessage = async (question: string, conversationId?: string) => {
     setIsLoading(true)
 
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ question }))
+      const payload: { question: string; conversation_id?: string } = { question }
+      if (conversationId) payload.conversation_id = conversationId
+      ws.send(JSON.stringify(payload))
       return
     }
 
     // REST fallback
     try {
-      const data = await queryChat(question)
+      const data = await queryChat(question, conversationId)
       handlers.onToken(data.answer, data.mode)
       handlers.onSources(data.sources || [], data.mode)
+      handlers.onDone(data)
     } catch (err: any) {
       handlers.onError(err.message || "Backend error")
     } finally {
       setIsLoading(false)
-      handlers.onDone()
     }
   }
 

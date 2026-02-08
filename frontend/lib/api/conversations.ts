@@ -1,5 +1,5 @@
 import { getToken } from "@/lib/auth"
-import { apiFetch, ApiError } from "./client"
+import { apiFetch } from "./client"
 
 // ---- Types matching backend ConversationOut ----
 
@@ -10,6 +10,14 @@ export interface ConversationApi {
   messages: { role: string; content: string; timestamp: string }[]
   created_at: string
   updated_at: string
+}
+
+export interface ConversationListItemApi {
+  id: string
+  title: string
+  created_at: string
+  updated_at: string
+  message_count: number
 }
 
 // ---- Helpers ----
@@ -37,7 +45,13 @@ export async function createConversation(
 }
 
 export async function listConversations() {
-  return apiFetch<ConversationApi[]>("/api/conversations", {
+  return apiFetch<ConversationListItemApi[]>("/api/conversations", {
+    headers: authHeaders(),
+  })
+}
+
+export async function getConversation(id: string) {
+  return apiFetch<ConversationApi>(`/api/conversations/${id}`, {
     headers: authHeaders(),
   })
 }

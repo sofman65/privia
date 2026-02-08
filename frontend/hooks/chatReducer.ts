@@ -26,6 +26,45 @@ export const initialChatState: ChatState = {
 
 export function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
+    case "SET_CONVERSATIONS": {
+      if (!action.conversations.length) {
+        const welcome = createWelcomeConversation()
+        return {
+          conversations: [welcome],
+          currentConversationId: welcome.id,
+        }
+      }
+
+      const nextCurrentId =
+        action.currentConversationId &&
+        action.conversations.some((c) => c.id === action.currentConversationId)
+          ? action.currentConversationId
+          : action.conversations[0].id
+
+      return {
+        conversations: action.conversations,
+        currentConversationId: nextCurrentId,
+      }
+    }
+
+    case "REPLACE_CONVERSATION_ID": {
+      const updated = state.conversations.map((conv) =>
+        conv.id === action.oldId ? { ...conv, id: action.newId } : conv,
+      )
+
+      const deduped = updated.filter(
+        (conv, index, all) => all.findIndex((candidate) => candidate.id === conv.id) === index,
+      )
+
+      return {
+        conversations: deduped,
+        currentConversationId:
+          state.currentConversationId === action.oldId
+            ? action.newId
+            : state.currentConversationId,
+      }
+    }
+
     case "SET_CURRENT":
       return { ...state, currentConversationId: action.conversationId }
 

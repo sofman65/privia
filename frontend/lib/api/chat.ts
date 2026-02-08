@@ -7,15 +7,19 @@ export const chatUrls = {
   ws: () => `${env.wsUrl}/api/ws/chat`,
 }
 
-export const queryChat = (question: string) => {
+export const queryChat = (question: string, conversationId?: string) => {
   const token = getToken()
   const headers: Record<string, string> = {}
   if (token) headers["Authorization"] = `Bearer ${token}`
+
+  const payload: { question: string; conversation_id?: string } = { question }
+  if (conversationId) payload.conversation_id = conversationId
+
   return apiFetch<{ answer: string; sources?: string[]; mode?: string; conversation_id?: string }>(
     "/api/query",
     {
       method: "POST",
-      body: JSON.stringify({ question }),
+      body: JSON.stringify(payload),
       headers,
     }
   )

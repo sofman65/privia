@@ -15,7 +15,9 @@ from fastapi import (
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from app.core.database import SessionLocal
 from app.core.deps import get_db, get_current_user
+from app.core.security import decode_jwt
 from app.engine import get_engine, ChatContext, HistoryMessage
 from app.models.conversation import Conversation
 from app.models.message import Message
@@ -27,6 +29,36 @@ router = APIRouter(tags=["chat"])
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _extract_ws_token(websocket: WebSocket) -> str | None:
+    auth = websocket.headers.get("Authorization")
+    if auth and auth.startswith("Bearer "):
+        return auth.replace("Bearer ", "").strip()
+
+    cookie_token = websocket.cookies.get("auth-token")
+    if cookie_token:
+        return cookie_token
+
+    query_token = websocket.query_params.get("token")
+    if query_token:
+        return query_token
+
+    return None
+
+
+def _authenticate_ws_user(websocket: WebSocket) -> str | None:
+    token = _extract_ws_token(websocket)
+    if not token:
+        return None
+
+    try:
+        payload = decode_jwt(token)
+    except HTTPException:
+        return None
+
+    user_id = payload.get("sub")
+    return str(user_id) if user_id else None
 
 
 def _get_or_create_conversation(
@@ -179,45 +211,86 @@ def stream_chat(
 async def chat_ws(websocket: WebSocket):
     """
     WebSocket chat that streams tokens from the active ChatEngine.
-
-    Authentication is not enforced on the WebSocket handshake yet.
+    Authentication is required via Bearer token or auth-token cookie.
     """
+    user_id = _authenticate_ws_user(websocket)
+    if not user_id:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await websocket.accept()
     engine = get_engine()
+    db = SessionLocal()
 
     try:
         while True:
             message = await websocket.receive_text()
+            conversation_id: str | None = None
+
             try:
                 data = json.loads(message)
                 if isinstance(data, dict) and data.get("type") == "stop":
                     continue
-                question = data.get("question") if isinstance(data, dict) else str(data)
+                if isinstance(data, dict):
+                    question = str(data.get("question", ""))
+                    conversation_id = data.get("conversation_id")
+                else:
+                    question = str(data)
             except json.JSONDecodeError:
                 question = message
 
-            ctx = ChatContext(user_id="ws-anonymous")
+            if not question.strip():
+                await websocket.send_json(
+                    {"type": "error", "content": "Question is required"}
+                )
+                continue
 
-            for chunk in engine.stream(question or "", ctx):
+            try:
+                conv = _get_or_create_conversation(db, user_id, conversation_id)
+                _activate_conversation(conv, db)
+
+                db.add(Message(conversation_id=conv.id, role="user", content=question))
+                db.commit()
+
+                ctx = _build_context(user_id, conv)
+                full = ""
+                for chunk in engine.stream(question, ctx):
+                    full += chunk
+                    await websocket.send_json(
+                        {
+                            "type": "token",
+                            "content": chunk,
+                            "mode": "stream",
+                        }
+                    )
+
+                resp = engine.last_response()
+                db.add(
+                    Message(
+                        conversation_id=conv.id,
+                        role="assistant",
+                        content=full.strip(),
+                    )
+                )
+                conv.updated_at = datetime.utcnow()
+                db.commit()
+
                 await websocket.send_json(
                     {
-                        "type": "token",
-                        "content": chunk,
-                        "mode": engine.last_response().mode
-                        if hasattr(engine, "_last") and engine._last
-                        else "stub",
+                        "type": "done",
+                        "conversation_id": conv.id,
+                        "sources": resp.sources,
+                        "mode": resp.mode,
                     }
                 )
-
-            resp = engine.last_response()
-            await websocket.send_json(
-                {
-                    "type": "done",
-                    "sources": resp.sources,
-                    "mode": resp.mode,
-                }
-            )
+            except HTTPException as exc:
+                db.rollback()
+                detail = exc.detail if isinstance(exc.detail, str) else "Request failed"
+                await websocket.send_json({"type": "error", "content": detail})
+            except Exception as exc:  # pragma: no cover
+                db.rollback()
+                await websocket.send_json({"type": "error", "content": str(exc)})
     except WebSocketDisconnect:
         pass
-    except Exception as exc:  # pragma: no cover
-        await websocket.send_json({"type": "error", "content": str(exc)})
+    finally:
+        db.close()

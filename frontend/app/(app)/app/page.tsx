@@ -12,30 +12,50 @@ import { useConversations } from "@/hooks/useConversations"
 import { useChatWS } from "@/hooks/useChatWS"
 import { useChatSSE } from "@/hooks/useChatSSE"
 
-import { clearAuth, getToken } from "@/lib/auth"
-import { createConversation } from "@/lib/api/conversations"
+import { getToken } from "@/lib/auth"
+import {
+  createConversation,
+  deleteConversationApi,
+  getConversation,
+  listConversations,
+  type ConversationApi,
+} from "@/lib/api/conversations"
 import type { Conversation, Message } from "@/types/chat"
 
-import { cn } from "@/lib/utils"
+const toConversation = (apiConv: ConversationApi): Conversation => ({
+  id: apiConv.id,
+  title: apiConv.title,
+  messages: apiConv.messages.map((message) => ({
+    role: message.role as Message["role"],
+    content: message.content,
+    timestamp: new Date(message.timestamp),
+  })),
+  createdAt: new Date(apiConv.created_at),
+  updatedAt: new Date(apiConv.updated_at),
+})
 
 export default function PriviaChatPage() {
   const [input, setInput] = useState("")
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [useSSE, setUseSSE] = useState(true)
+  const [useSSE] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isHydrating, setIsHydrating] = useState(true)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const {
     state,
     currentConversation,
+    setConversations,
+    replaceConversationId,
     setCurrentConversation,
     addUserMessage,
     addAssistantMessage,
     updateAssistantMessage,
     setSources,
+    setMode,
     updateTitle,
     newConversation,
     deleteConversation,
@@ -55,11 +75,74 @@ export default function PriviaChatPage() {
       ),
   )
 
-  // --- Auth gate (temporary, until backend sessions exist)
+  // --- Auth + conversation bootstrap
   useEffect(() => {
-    const token = getToken()
-    if (!token) {
-      window.location.href = "/login"
+    let isCancelled = false
+
+    const bootstrap = async () => {
+      const token = getToken()
+      if (!token) {
+        window.location.href = "/login"
+        return
+      }
+
+      try {
+        const summaries = await listConversations()
+        if (isCancelled) return
+
+        if (summaries.length) {
+          const fullConversations = await Promise.all(
+            summaries.map(async (summary) => {
+              try {
+                return await getConversation(summary.id)
+              } catch (error) {
+                console.error(`Failed to load conversation ${summary.id}`, error)
+                return null
+              }
+            }),
+          )
+
+          if (isCancelled) return
+
+          const mapped = fullConversations
+            .filter((conversation): conversation is ConversationApi => conversation !== null)
+            .map(toConversation)
+
+          if (mapped.length) {
+            setConversations(mapped, mapped[0].id)
+          } else {
+            const apiConv = await createConversation()
+            if (isCancelled) return
+            const first = toConversation(apiConv)
+            setConversations([first], first.id)
+          }
+        } else {
+          const apiConv = await createConversation()
+          if (isCancelled) return
+          const first = toConversation(apiConv)
+          setConversations([first], first.id)
+        }
+      } catch (error) {
+        console.error("Failed to bootstrap conversations", error)
+        try {
+          const apiConv = await createConversation()
+          if (isCancelled) return
+          const first = toConversation(apiConv)
+          setConversations([first], first.id)
+        } catch (createError) {
+          console.error("Failed to create fallback conversation", createError)
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsHydrating(false)
+        }
+      }
+    }
+
+    bootstrap()
+
+    return () => {
+      isCancelled = true
     }
   }, [])
 
@@ -79,7 +162,27 @@ export default function PriviaChatPage() {
           return { ...msg, content: msg.content + content, mode }
         })
       },
-      onDone: () => {},
+      onDone: (data?: {
+        conversation_id?: string
+        mode?: string
+        sources?: string[]
+      }) => {
+        const backendConversationId = data?.conversation_id
+        const nextConversationId = backendConversationId ?? currentConversationId
+
+        if (backendConversationId && backendConversationId !== currentConversationId) {
+          replaceConversationId(currentConversationId, backendConversationId)
+          setCurrentConversation(backendConversationId)
+        }
+
+        if (data?.mode) {
+          setMode(nextConversationId, data.mode)
+        }
+
+        if (data?.sources) {
+          setSources(nextConversationId, data.sources, data.mode)
+        }
+      },
       onError: (msg: string) => {
         updateAssistantMessage(currentConversationId, (m: Message) => ({
           ...m,
@@ -88,7 +191,14 @@ export default function PriviaChatPage() {
         }))
       },
     }),
-    [currentConversationId, setSources, updateAssistantMessage],
+    [
+      currentConversationId,
+      replaceConversationId,
+      setCurrentConversation,
+      setMode,
+      setSources,
+      updateAssistantMessage,
+    ],
   )
 
   const ws = useChatWS(handlers)
@@ -122,14 +232,11 @@ export default function PriviaChatPage() {
   const handleSend = useCallback(
     async (text?: string) => {
       const message = text || input
-      if (!message.trim() || isLoading) return
+      if (!message.trim() || isLoading || isHydrating) return
 
       const convId = currentConversationId
       const conv = state.conversations.find((c: Conversation) => c.id === convId)
-      const firstUser =
-        conv &&
-        conv.messages.length === 1 &&
-        conv.messages[0].role === "assistant"
+      const firstUser = !conv || conv.messages.every((m: Message) => m.role !== "user")
 
       addUserMessage(convId, message, new Date())
 
@@ -142,13 +249,15 @@ export default function PriviaChatPage() {
 
       addAssistantMessage(convId, "", new Date())
       setInput("")
-      await sendMessage(message)
+      const conversationIdForApi = convId === "1" ? undefined : convId
+      await sendMessage(message, conversationIdForApi)
     },
     [
       addAssistantMessage,
       addUserMessage,
       currentConversationId,
       input,
+      isHydrating,
       isLoading,
       sendMessage,
       state.conversations,
@@ -174,6 +283,8 @@ export default function PriviaChatPage() {
   )
 
   const handleNewConversation = useCallback(async () => {
+    if (isHydrating) return
+
     // Layer 1 guards: block while in-flight, redirect to existing empty chat
     if (isCreatingChat) return
     if (hasEmptyActiveChat) {
@@ -190,17 +301,7 @@ export default function PriviaChatPage() {
     setIsCreatingChat(true)
     try {
       const apiConv = await createConversation()
-      const conv: Conversation = {
-        id: apiConv.id,
-        title: apiConv.title,
-        messages: apiConv.messages.map((m) => ({
-          role: m.role as Message["role"],
-          content: m.content,
-          timestamp: new Date(m.timestamp),
-        })),
-        createdAt: new Date(apiConv.created_at),
-        updatedAt: new Date(apiConv.updated_at),
-      }
+      const conv = toConversation(apiConv)
       // If backend returned a conv we already have locally, just select it
       const alreadyLocal = state.conversations.find((c: Conversation) => c.id === conv.id)
       if (alreadyLocal) {
@@ -216,7 +317,21 @@ export default function PriviaChatPage() {
     } finally {
       setIsCreatingChat(false)
     }
-  }, [isCreatingChat, hasEmptyActiveChat, state.conversations, newConversation, setCurrentConversation])
+  }, [hasEmptyActiveChat, isCreatingChat, isHydrating, newConversation, setCurrentConversation, state.conversations])
+
+  const handleDeleteConversation = useCallback(
+    async (conversationId: string) => {
+      try {
+        if (conversationId !== "1") {
+          await deleteConversationApi(conversationId)
+        }
+        deleteConversation(conversationId)
+      } catch (error) {
+        console.error(`Failed to delete conversation ${conversationId}`, error)
+      }
+    },
+    [deleteConversation],
+  )
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-full min-h-0 overflow-hidden bg-background">
@@ -227,7 +342,7 @@ export default function PriviaChatPage() {
         setSidebarOpen={setSidebarOpen}
         onNewConversation={handleNewConversation}
         isCreatingChat={isCreatingChat}
-        onDelete={deleteConversation}
+        onDelete={handleDeleteConversation}
         onSelect={setCurrentConversation}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
