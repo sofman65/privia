@@ -108,9 +108,7 @@ export const MobileSidebar = ({ className, children, ...props }: React.Component
           <button onClick={() => setOpen(!open)} className="p-1">
             <IconMenu2 className="h-6 w-6 text-foreground" />
           </button>
-          <Link href="/app" aria-label="Go to Privia home" className="flex items-center">
-            <Logo variant="brand" mode="light" className="h-7 w-auto" />
-          </Link>
+       
         </div>
         <AnimatePresence>
           {open && (

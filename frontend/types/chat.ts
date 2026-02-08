@@ -19,6 +19,20 @@ export interface ChatState {
   currentConversationId: string
 }
 
+export interface ChatSidebarProps {
+  conversations?: Conversation[]
+  currentId?: string
+  sidebarOpen?: boolean
+  setSidebarOpen?: (open: boolean) => void
+  onNewConversation: () => void
+  onDelete: (id: string) => void
+  onSelect: (id: string) => void
+  searchQuery?: string
+  setSearchQuery: (query: string) => void
+  handleLogout?: () => void
+  onOpenSettings?: () => void
+}
+
 export type ChatAction =
   | { type: "ADD_USER_MESSAGE"; conversationId: string; content: string; timestamp: Date }
   | { type: "ADD_ASSISTANT_MESSAGE"; conversationId: string; content?: string; timestamp: Date }

@@ -14,6 +14,9 @@ type Props = {
 }
 
 export function ChatMessage({ message, isLast, isLoading, onRegenerate }: Props) {
+  const timestamp =
+    message.timestamp instanceof Date ? message.timestamp : new Date(message.timestamp as any)
+
   return (
     <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"} group`}>
       {message.role === "assistant" && (
@@ -45,10 +48,9 @@ export function ChatMessage({ message, isLast, isLoading, onRegenerate }: Props)
 
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
-            {message.timestamp.toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {timestamp.toString() !== "Invalid Date"
+              ? timestamp.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+              : ""}
           </span>
           <MessageActions
             content={message.content}

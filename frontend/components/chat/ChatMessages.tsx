@@ -11,22 +11,27 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, isLoading, onRegenerate, onPromptClick }: ChatMessagesProps) {
-  const showEmptyState = messages.length === 0
-  const lastMessage = messages[messages.length - 1]
+  const showEmptyState = messages.filter((m) => m.content?.trim() !== "").length === 0
+  const safeMessages = messages.filter((m) => m.content?.trim() !== "")
+  const lastMessage = safeMessages[safeMessages.length - 1]
   const showRetrievalLoader = isLoading && lastMessage?.mode === "rag"
   const showChatLoader = isLoading && !showRetrievalLoader
 
   if (showEmptyState) {
-    return <EmptyState onPromptClick={onPromptClick} />
+    return (
+      <div className="flex items-center justify-center py-10 min-h-[60vh]">
+        <EmptyState onPromptClick={onPromptClick} />
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {messages.map((message, index) => (
+      {safeMessages.map((message, index) => (
         <ChatMessage
           key={index}
           message={message}
-          isLast={index === messages.length - 1}
+          isLast={index === safeMessages.length - 1}
           isLoading={isLoading}
           onRegenerate={onRegenerate}
         />
