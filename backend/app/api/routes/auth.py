@@ -12,7 +12,7 @@ from app.core.security import (
 from app.models.user import User
 from app.schemas.auth import LoginResponse, SignupRequest, UserProfile
 
-router = APIRouter()
+router = APIRouter(tags=["auth"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -42,6 +42,7 @@ def login(
             "id": user.id,
             "email": user.email,
             "full_name": user.full_name,
+            "role": user.role,
         },
     }
 
@@ -101,10 +102,12 @@ def get_current_user(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
+            role=user.role,
         )
 
     return UserProfile(
         id=user_id,
         email=email,
         full_name=None,
+        role=None,
     )

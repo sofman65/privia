@@ -13,3 +13,4 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     full_name: Mapped[str | None]
     password_hash: Mapped[str]
+    role: Mapped[str] = mapped_column(String, default="member")

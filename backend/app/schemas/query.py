@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 
 class QueryRequest(BaseModel):
@@ -11,3 +11,4 @@ class QueryResponse(BaseModel):
     answer: str
     mode: str
     conversation_id: str
+    sources: List[str] = []

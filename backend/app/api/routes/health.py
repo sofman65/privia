@@ -5,7 +5,7 @@ from fastapi import APIRouter
 
 from app.core.config import settings
 
-router = APIRouter()
+router = APIRouter(tags=["health"])
 
 # process-level uptime start
 START_TIME = time.monotonic()
