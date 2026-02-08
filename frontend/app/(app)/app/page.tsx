@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ChatSidebar } from "@/components/chat/ChatSidebar"
 import { ChatMessages } from "@/components/chat/ChatMessages"
 import { SettingsModal } from "@/components/chat/SettingsModal"
 import { ChatComposer } from "@/components/chat/ChatComposer"
@@ -12,6 +13,7 @@ import { useChatWS } from "@/hooks/useChatWS"
 import { useChatSSE } from "@/hooks/useChatSSE"
 
 import { clearAuth, getToken } from "@/lib/auth"
+import type { Conversation, Message } from "@/types/chat"
 
 import { cn } from "@/lib/utils"
 
@@ -20,6 +22,8 @@ export default function PriviaChatPage() {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [useSSE, setUseSSE] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -42,7 +46,7 @@ export default function PriviaChatPage() {
   const messages = currentConversation?.messages || []
 
   const visibleMessages = messages.filter(
-    (m) =>
+    (m: Message) =>
       !(
         m.role === "assistant" &&
         (m.content === "" ||
@@ -65,7 +69,7 @@ export default function PriviaChatPage() {
         setSources(currentConversationId, sources, mode)
       },
       onToken: (content: string, mode?: string) => {
-        updateAssistantMessage(currentConversationId, (msg) => {
+        updateAssistantMessage(currentConversationId, (msg: Message) => {
           const isFull =
             content.length > msg.content.length + 50 || msg.content === ""
           if (isFull || mode === "rag") {
@@ -76,7 +80,7 @@ export default function PriviaChatPage() {
       },
       onDone: () => {},
       onError: (msg: string) => {
-        updateAssistantMessage(currentConversationId, (m) => ({
+        updateAssistantMessage(currentConversationId, (m: Message) => ({
           ...m,
           content: `Error: ${msg}`,
           mode: "error",
@@ -120,7 +124,7 @@ export default function PriviaChatPage() {
       if (!message.trim() || isLoading) return
 
       const convId = currentConversationId
-      const conv = state.conversations.find((c) => c.id === convId)
+      const conv = state.conversations.find((c: Conversation) => c.id === convId)
       const firstUser =
         conv &&
         conv.messages.length === 1 &&
@@ -152,18 +156,51 @@ export default function PriviaChatPage() {
   )
 
   const handleRegenerate = useCallback(() => {
-    const lastUser = messages.filter((m) => m.role === "user").pop()
+    const lastUser = messages.filter((m: { role: string }) => m.role === "user").pop()
     if (lastUser && !isLoading) {
       handleSend(lastUser.content)
     }
   }, [handleSend, isLoading, messages])
 
-  return (
-    <div className={cn("flex h-full w-full flex-col overflow-hidden")}>
-      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+  const handleNewConversation = useCallback(() => {
+    const now = new Date()
+    const conv: Conversation = {
+      id: crypto.randomUUID(),
+      title: "New conversation",
+      messages: [
+        {
+          role: "assistant",
+          content:
+            "Welcome to Privia. I'm your private workspace assistant—ask anything about your workstreams, documents, or product plans and I'll keep it organized here.",
+          timestamp: now,
+        },
+      ],
+      createdAt: now,
+      updatedAt: now,
+    }
+    newConversation(conv)
+  }, [newConversation])
 
-      <div className="flex flex-1 overflow-hidden min-h-0">
-        <div className="mx-auto flex w-full max-w-5xl flex-col relative h-full min-h-0">
+  return (
+    <div className="flex h-screen w-full min-h-0 overflow-hidden bg-background">
+      <ChatSidebar
+        conversations={state.conversations}
+        currentId={currentConversationId}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        onNewConversation={handleNewConversation}
+        onDelete={deleteConversation}
+        onSelect={setCurrentConversation}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+
+      <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+        <div className="flex flex-1 overflow-hidden min-h-0">
+          <div className="mx-auto flex w-full max-w-5xl flex-col relative h-full min-h-0">
           <ScrollArea
             className="flex-1 h-full px-4 py-6 md:px-6 md:py-8 pb-28 min-h-0"
             onScrollCapture={handleScroll}
@@ -186,13 +223,14 @@ export default function PriviaChatPage() {
             value={input}
             onChange={setInput}
             onSend={() => handleSend()}
-            onNewConversation={newConversation}
+            onNewConversation={handleNewConversation}
             onStop={stopGeneration}
             isLoading={isLoading}
             isConnected={isConnected}
           />
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

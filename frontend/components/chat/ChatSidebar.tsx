@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -49,9 +50,13 @@ export function ChatSidebar({
   onOpenSettings,
 }: ChatSidebarProps) {
   const userInfo = useUserProfile()
+  const { resolvedTheme } = useTheme()
   const [sidebarOpenInternal, setSidebarOpenInternal] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [nowMs, setNowMs] = useState<number | null>(null)
+  const [themeMounted, setThemeMounted] = useState(false)
+  useEffect(() => setThemeMounted(true), [])
+  const logoMode = themeMounted && resolvedTheme === "dark" ? "dark" : "light"
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -111,7 +116,7 @@ export function ChatSidebar({
               className={cn("flex items-center gap-3 transition-opacity hover:opacity-90", collapsed && "justify-center")}
             >
               <div className="flex items-center justify-center overflow-hidden pl-10">
-                <Logo variant="brand" mode="light" className="h-20 w-auto md:h-20" />
+                <Logo variant="brand" mode={logoMode} className="h-20 w-auto md:h-20" />
               </div>
 
               {!collapsed && (

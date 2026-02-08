@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import type { SettingsModalProps } from "@/types/chat"
@@ -36,21 +37,24 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {/* Theme */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">Appearance</Label>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                 <span className="text-sm">Theme</span>
               </div>
-              <Select value={theme} onValueChange={setTheme}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <Select value={theme} onValueChange={setTheme}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 

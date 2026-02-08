@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 import { Logo } from "@/components/logo"
 import { Card } from "@/components/ui/card"
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect"
@@ -33,6 +35,10 @@ const starterPrompts = [
 
 export function EmptyState({ onPromptClick }: EmptyStateProps) {
   const userInfo = useUserProfile()
+  const { resolvedTheme } = useTheme()
+  const [themeMounted, setThemeMounted] = useState(false)
+  useEffect(() => setThemeMounted(true), [])
+  const logoMode = themeMounted && resolvedTheme === "dark" ? "dark" : "light"
 
   const words = userInfo?.full_name
     ? [
@@ -58,7 +64,7 @@ export function EmptyState({ onPromptClick }: EmptyStateProps) {
         className="flex flex-col items-center max-w-3xl"
       >
         <div className="flex h-28 w-28 items-center justify-center mb-6 overflow-hidden">
-          <Logo variant="flower" mode="light" className="h-20 w-auto" />
+          <Logo variant="flower" mode={logoMode} className="h-20 w-auto" />
         </div>
 
         <TypewriterEffectSmooth words={words} className="mb-3" cursorClassName="bg-accent" />

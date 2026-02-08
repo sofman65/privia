@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react"
 import { chatUrls } from "@/lib/api/chat"
+import { getToken } from "@/lib/auth"
 
 type Handlers = {
   onSources: (sources: any[], mode?: string) => void
@@ -28,11 +29,15 @@ export function useChatSSE(handlers: Handlers) {
       abortControllerRef.current = abortController
 
       try {
+        const token = getToken()
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        }
+        if (token) headers["Authorization"] = `Bearer ${token}`
+
         const response = await fetch(chatUrls.stream(), {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify({ question }),
           signal: abortController.signal,
         })
