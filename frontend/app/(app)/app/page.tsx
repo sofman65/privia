@@ -207,6 +207,13 @@ export default function PriviaChatPage() {
   const { isConnected, isLoading, sendMessage, stopGeneration } =
     useSSE ? sse : ws
 
+  // Keep mobile overlays mutually exclusive.
+  useEffect(() => {
+    if (settingsOpen && sidebarOpen) {
+      setSidebarOpen(false)
+    }
+  }, [settingsOpen, sidebarOpen])
+
   // --- Scroll helpers
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -333,6 +340,11 @@ export default function PriviaChatPage() {
     [deleteConversation],
   )
 
+  const handleOpenSettings = useCallback(() => {
+    setSidebarOpen(false)
+    setSettingsOpen(true)
+  }, [])
+
   return (
     <div className="flex flex-col md:flex-row h-screen w-full min-h-0 overflow-hidden bg-background">
       <ChatSidebar
@@ -346,7 +358,7 @@ export default function PriviaChatPage() {
         onSelect={setCurrentConversation}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSettings={handleOpenSettings}
       />
 
       <main className="flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col">
