@@ -36,12 +36,17 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <div className="shadow-input w-full max-w-lg rounded-none bg-white p-6 md:rounded-2xl md:p-10 dark:bg-black border border-border/60">
+      <div className="w-full max-w-lg rounded-none border border-border bg-card p-6 text-card-foreground shadow-sm md:rounded-2xl md:p-10">
         <div className="flex flex-col items-center space-y-3 text-center">
           <div className="mx-auto flex h-20 w-28 items-center justify-center">
-            <Logo variant="brand" mode="light" className="h-20 w-auto" priority />
+            <span className="block dark:hidden">
+              <Logo variant="brand" mode="light" className="h-20 w-auto" priority />
+            </span>
+            <span className="hidden dark:block">
+              <Logo variant="brand" mode="dark" className="h-20 w-auto" priority />
+            </span>
           </div>
-          <h1 className="text-2xl font-bold">Login</h1>
+          <h1 className="text-2xl font-bold text-foreground">Login</h1>
           <p className="text-sm text-muted-foreground">
             Privacy-aware AI chat workspace for product teams.
           </p>
@@ -88,9 +93,7 @@ export default function LoginPage() {
             type="submit"
             disabled={isLoading}
             className={cn(
-              "group/btn relative block h-11 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white",
-              "shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset]",
-              "dark:bg-zinc-900 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]",
+              "h-11 w-full rounded-md bg-primary px-4 font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90",
               "disabled:opacity-70 disabled:cursor-not-allowed"
             )}
           >
@@ -102,7 +105,6 @@ export default function LoginPage() {
             ) : (
               "Sign in →"
             )}
-            <BottomGradient />
           </button>
 
           <div className="flex items-center gap-3 text-xs uppercase tracking-[0.08em] text-muted-foreground">
@@ -116,9 +118,9 @@ export default function LoginPage() {
             <OAuthButton icon={<IconBrandGithub className="h-4 w-4" />} label="GitHub" />
           </div>
 
-          <div className="text-center text-sm text-muted-foreground mt-1">
+          <div className="mt-1 text-center text-sm text-muted-foreground">
             Don’t have an account?{" "}
-            <Link href="/signup" className="font-semibold text-primary hover:underline">
+            <Link href="/signup" className="font-semibold text-accent hover:underline">
               Create one
             </Link>
           </div>
@@ -128,24 +130,14 @@ export default function LoginPage() {
   )
 }
 
-const BottomGradient = () => {
-  return (
-    <>
-      <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-      <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
-    </>
-  )
-}
-
 const OAuthButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => {
   return (
     <button
       type="button"
-      className="group/btn relative flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gray-50 px-4 font-medium text-black shadow-input transition hover:shadow-none dark:bg-zinc-900 dark:text-white dark:shadow-[0px_0px_1px_1px_#262626]"
+      className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-secondary px-4 font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80"
     >
       {icon}
       <span className="text-sm">{label}</span>
-      <BottomGradient />
     </button>
   )
 }
