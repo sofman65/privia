@@ -10,7 +10,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.schemas.auth import LoginResponse, SignupRequest, UserProfile
+from app.schemas.auth import LoginResponse, OAuthExchangeRequest, SignupRequest, UserProfile
 
 router = APIRouter(tags=["auth"])
 
@@ -27,7 +27,7 @@ def login(
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not user.password_hash or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid email or password",
@@ -111,3 +111,59 @@ def get_current_user(
         full_name=None,
         role=None,
     )
+
+
+@router.post(
+    "/oauth",
+    response_model=LoginResponse,
+    summary="Exchange OAuth session for JWT",
+)
+def oauth_exchange(
+    payload: OAuthExchangeRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Called by the frontend after NextAuth completes an OAuth flow.
+
+    - If a user with this email already exists, update provider info and return JWT.
+    - If not, create a new user (no password) and return JWT.
+    """
+    user = db.query(User).filter(User.email == payload.email).first()
+
+    if user:
+        # Link / update provider info on existing user
+        if not user.provider:
+            user.provider = payload.provider
+            user.provider_account_id = payload.provider_account_id
+        if payload.avatar_url:
+            user.avatar_url = payload.avatar_url
+        if payload.full_name and not user.full_name:
+            user.full_name = payload.full_name
+        db.commit()
+        db.refresh(user)
+    else:
+        # Auto-register OAuth user (no password)
+        user = User(
+            email=payload.email,
+            full_name=payload.full_name,
+            password_hash="",  # OAuth users have no local password
+            provider=payload.provider,
+            provider_account_id=payload.provider_account_id,
+            avatar_url=payload.avatar_url,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    token = create_access_token(user.id, user.email)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role,
+        },
+    }

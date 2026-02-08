@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import { Logo } from "@/components/logo"
 import { Loader2 } from "lucide-react"
@@ -15,6 +16,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<string | null>(null)
   const [error, setError] = useState("")
   const router = useRouter()
 
@@ -32,6 +34,13 @@ export default function SignupPage() {
       setIsLoading(false)
     }
   }
+
+  const handleOAuth = (provider: "google" | "github") => {
+    setOauthLoading(provider)
+    signIn(provider, { callbackUrl: "/auth/callback" })
+  }
+
+  const busy = isLoading || !!oauthLoading
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-primary/5 p-4">
@@ -52,7 +61,7 @@ export default function SignupPage() {
         <form onSubmit={handleSignup} className="mt-8 space-y-4">
           <LabelInputContainer>
             <label className="text-sm font-medium text-foreground">Full name</label>
-            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={busy} />
           </LabelInputContainer>
 
           <LabelInputContainer>
@@ -63,6 +72,7 @@ export default function SignupPage() {
               value={email}
               required
               onChange={(e) => setEmail(e.target.value)}
+              disabled={busy}
             />
           </LabelInputContainer>
 
@@ -73,8 +83,9 @@ export default function SignupPage() {
               value={password}
               required
               minLength={4}
-              placeholder="••••••••"
+              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
               onChange={(e) => setPassword(e.target.value)}
+              disabled={busy}
             />
           </LabelInputContainer>
 
@@ -86,7 +97,7 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={busy}
             className={cn(
               "h-11 w-full rounded-md bg-primary px-4 font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90",
               "disabled:opacity-70 disabled:cursor-not-allowed"
@@ -98,7 +109,7 @@ export default function SignupPage() {
                 Creating...
               </span>
             ) : (
-              "Create account →"
+              "Create account \u2192"
             )}
           </button>
 
@@ -109,8 +120,20 @@ export default function SignupPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <OAuthButton icon={<IconBrandGoogle className="h-4 w-4" />} label="Google" />
-            <OAuthButton icon={<IconBrandGithub className="h-4 w-4" />} label="GitHub" />
+            <OAuthButton
+              icon={<IconBrandGoogle className="h-4 w-4" />}
+              label="Google"
+              loading={oauthLoading === "google"}
+              disabled={busy}
+              onClick={() => handleOAuth("google")}
+            />
+            <OAuthButton
+              icon={<IconBrandGithub className="h-4 w-4" />}
+              label="GitHub"
+              loading={oauthLoading === "github"}
+              disabled={busy}
+              onClick={() => handleOAuth("github")}
+            />
           </div>
 
           <p className="mt-2 text-center text-sm text-muted-foreground">
@@ -125,13 +148,30 @@ export default function SignupPage() {
   )
 }
 
-const OAuthButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => {
+const OAuthButton = ({
+  icon,
+  label,
+  loading,
+  disabled,
+  onClick,
+}: {
+  icon: React.ReactNode
+  label: string
+  loading?: boolean
+  disabled?: boolean
+  onClick?: () => void
+}) => {
   return (
     <button
       type="button"
-      className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-secondary px-4 font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-secondary px-4 font-medium text-secondary-foreground shadow-sm transition-colors hover:bg-secondary/80",
+        "disabled:opacity-70 disabled:cursor-not-allowed"
+      )}
     >
-      {icon}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
       <span className="text-sm">{label}</span>
     </button>
   )

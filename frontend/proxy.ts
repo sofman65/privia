@@ -5,11 +5,15 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Public routes that don't require authentication
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup")
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/auth/callback")
   const isMarketingRoute = pathname === "/"
   const isPublicAsset =
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/health") ||
+    pathname.startsWith("/api/auth") ||
     pathname.includes("favicon")
 
   if (isPublicAsset) {

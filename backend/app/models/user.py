@@ -12,5 +12,9 @@ class User(Base):
     )
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     full_name: Mapped[str | None]
-    password_hash: Mapped[str]
+    password_hash: Mapped[str] = mapped_column(String, default="")
     role: Mapped[str] = mapped_column(String, default="member")
+    # OAuth fields (null for local users)
+    provider: Mapped[str | None] = mapped_column(String, default=None)
+    provider_account_id: Mapped[str | None] = mapped_column(String, default=None)
+    avatar_url: Mapped[str | None] = mapped_column(String, default=None)
