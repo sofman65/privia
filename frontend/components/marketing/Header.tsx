@@ -42,7 +42,7 @@ export function Header() {
       {/* Desktop navbar */}
       <NavBody>
         <HeaderLogo />
-        <NavItems items={navItems} />
+        <NavItems items={navItems} className="lg:pr-6" />
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <NavbarButton href="/login" variant="dark">
