@@ -41,7 +41,7 @@ export default function OAuthCallbackPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen min-h-[100dvh] items-center justify-center p-4">
         <div className="text-center space-y-4">
           <p className="text-destructive">{error}</p>
           <button
@@ -56,7 +56,7 @@ export default function OAuthCallbackPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen min-h-[100dvh] items-center justify-center p-4">
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
         <Loader2 className="h-8 w-8 animate-spin" />
         <p className="text-sm">Completing sign-in...</p>

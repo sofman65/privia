@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { chatUrls, queryChat } from "@/lib/api/chat"
 import { getToken } from "@/lib/auth"
 
@@ -10,46 +10,73 @@ type Handlers = {
 }
 
 export function useChatWS(handlers: Handlers) {
-  const [ws, setWs] = useState<WebSocket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const reconnectAttempts = useRef(0)
   const maxReconnectAttempts = 3
   const handlersRef = useRef<Handlers>(handlers)
+  const socketRef = useRef<WebSocket | null>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isUnmountedRef = useRef(false)
 
   useEffect(() => {
     handlersRef.current = handlers
   }, [handlers])
 
-  useEffect(() => {
-    const connect = () => {
-      if (reconnectAttempts.current >= maxReconnectAttempts) {
-        return
+  const clearReconnectTimeout = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+      reconnectTimeoutRef.current = null
+    }
+  }, [])
+
+  const connect = useCallback(() => {
+    if (isUnmountedRef.current) return
+    if (reconnectAttempts.current >= maxReconnectAttempts) return
+
+    const currentSocket = socketRef.current
+    if (currentSocket && (currentSocket.readyState === WebSocket.OPEN || currentSocket.readyState === WebSocket.CONNECTING)) {
+      return
+    }
+
+    try {
+      const token = getToken()
+      const baseWsUrl = chatUrls.ws()
+      const wsUrl = token
+        ? `${baseWsUrl}${baseWsUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
+        : baseWsUrl
+
+      const socket = new WebSocket(wsUrl)
+      socketRef.current = socket
+
+      socket.onopen = () => {
+        if (isUnmountedRef.current) return
+        setIsConnected(true)
+        reconnectAttempts.current = 0
+        clearReconnectTimeout()
       }
-      try {
-        const token = getToken()
-        const baseWsUrl = chatUrls.ws()
-        const wsUrl = token
-          ? `${baseWsUrl}${baseWsUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
-          : baseWsUrl
-        const socket = new WebSocket(wsUrl)
 
-        socket.onopen = () => {
-          setIsConnected(true)
-          reconnectAttempts.current = 0
+      socket.onclose = () => {
+        if (socketRef.current === socket) {
+          socketRef.current = null
         }
+        if (isUnmountedRef.current) return
 
-        socket.onclose = () => {
-          setIsConnected(false)
-          reconnectAttempts.current += 1
-          setTimeout(connect, 3000)
+        setIsConnected(false)
+        reconnectAttempts.current += 1
+        if (reconnectAttempts.current < maxReconnectAttempts) {
+          clearReconnectTimeout()
+          reconnectTimeoutRef.current = setTimeout(connect, 3000)
         }
+      }
 
-        socket.onerror = () => {
-          setIsConnected(false)
-        }
+      socket.onerror = () => {
+        if (isUnmountedRef.current) return
+        setIsConnected(false)
+      }
 
-        socket.onmessage = (event) => {
+      socket.onmessage = (event) => {
+        try {
           const data = JSON.parse(event.data)
           const h = handlersRef.current
           if (data.type === "sources") {
@@ -63,39 +90,68 @@ export function useChatWS(handlers: Handlers) {
             setIsLoading(false)
             h.onError(data.content || "Backend error")
           }
+        } catch {
+          handlersRef.current.onError("Invalid websocket payload")
+          setIsLoading(false)
         }
-
-        setWs(socket)
-      } catch (err: any) {
-        setIsConnected(false)
       }
+    } catch {
+      setIsConnected(false)
     }
+  }, [clearReconnectTimeout])
 
+  useEffect(() => {
+    isUnmountedRef.current = false
     connect()
 
     return () => {
-      ws?.close()
+      isUnmountedRef.current = true
+      clearReconnectTimeout()
+      const socket = socketRef.current
+      socketRef.current = null
+      if (socket) {
+        socket.onopen = null
+        socket.onclose = null
+        socket.onerror = null
+        socket.onmessage = null
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+          socket.close()
+        }
+      }
     }
-  }, [])
+  }, [clearReconnectTimeout, connect])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return
+      reconnectAttempts.current = 0
+      connect()
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [connect])
 
   const sendMessage = async (question: string, conversationId?: string) => {
     setIsLoading(true)
 
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    const socket = socketRef.current
+    if (socket && socket.readyState === WebSocket.OPEN) {
       const payload: { question: string; conversation_id?: string } = { question }
       if (conversationId) payload.conversation_id = conversationId
-      ws.send(JSON.stringify(payload))
+      socket.send(JSON.stringify(payload))
       return
     }
 
     // REST fallback
     try {
       const data = await queryChat(question, conversationId)
-      handlers.onToken(data.answer, data.mode)
-      handlers.onSources(data.sources || [], data.mode)
-      handlers.onDone(data)
+      const h = handlersRef.current
+      h.onToken(data.answer, data.mode)
+      h.onSources(data.sources || [], data.mode)
+      h.onDone(data)
     } catch (err: any) {
-      handlers.onError(err.message || "Backend error")
+      handlersRef.current.onError(err.message || "Backend error")
     } finally {
       setIsLoading(false)
     }
@@ -103,8 +159,9 @@ export function useChatWS(handlers: Handlers) {
 
   const stopGeneration = () => {
     setIsLoading(false)
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "stop" }))
+    const socket = socketRef.current
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: "stop" }))
     }
   }
 

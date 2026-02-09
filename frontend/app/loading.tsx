@@ -2,7 +2,7 @@ import { Logo } from "@/components/logo"
 
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
       <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-card px-5 py-4 shadow-lg animate-in fade-in zoom-in-95">
         {/* Brand */}
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">

@@ -165,7 +165,7 @@ export function ChatSidebar({
                   placeholder="Search conversations"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 rounded-md bg-sidebar text-sidebar-foreground border-sidebar-border text-sm"
+                  className="pl-10 rounded-md bg-sidebar text-sidebar-foreground border-sidebar-border"
                 />
               </div>
             </div>

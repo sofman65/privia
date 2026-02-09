@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
-import { Square, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import type { ChatComposerProps } from "@/types/chat"
 
 export function ChatComposer({
@@ -37,7 +37,7 @@ export function ChatComposer({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4">
+    <div className="mx-auto w-full max-w-3xl px-4 pb-[calc(env(safe-area-inset-bottom)+0.25rem)]">
       <div className="flex h-14 items-center gap-2">
         <Button
           type="button"
@@ -57,8 +57,8 @@ export function ChatComposer({
               setLocalValue(e.target.value)
               onChange(e.target.value)
             }}
-          onSubmit={handleSubmit}
-        />
+            onSubmit={handleSubmit}
+          />
         </div>
       </div>
 

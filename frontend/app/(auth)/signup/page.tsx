@@ -43,7 +43,7 @@ export default function SignupPage() {
   const busy = isLoading || !!oauthLoading
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-primary/5 p-4">
+    <div className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-gradient-to-br from-background to-primary/5 p-4">
       <div className="w-full max-w-lg rounded-none border border-border bg-card p-6 text-card-foreground shadow-sm md:rounded-2xl md:p-10">
         <div className="flex flex-col items-center space-y-3 text-center">
           <div className="mx-auto flex h-20 w-28 items-center justify-center">

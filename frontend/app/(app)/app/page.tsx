@@ -45,6 +45,7 @@ export default function PriviaChatPage() {
   const [isHydrating, setIsHydrating] = useState(true)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   const {
     state,
@@ -220,11 +221,22 @@ export default function PriviaChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [])
 
+  const getScrollViewport = useCallback(() => {
+    if (!scrollAreaRef.current) return null
+    return scrollAreaRef.current.querySelector<HTMLElement>("[data-radix-scroll-area-viewport]")
+  }, [])
+
   useEffect(() => {
     if (isLoading || visibleMessages.length > 0) {
       scrollToBottom()
+      return
     }
-  }, [visibleMessages.length, isLoading, scrollToBottom])
+
+    const viewport = getScrollViewport()
+    if (viewport) {
+      viewport.scrollTop = 0
+    }
+  }, [currentConversationId, getScrollViewport, isLoading, scrollToBottom, visibleMessages.length])
 
   const handleScroll = useCallback(
     (e: any) => {
@@ -353,7 +365,10 @@ export default function PriviaChatPage() {
   }, [])
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full min-h-0 overflow-hidden bg-background">
+    <div
+      className="flex flex-col md:flex-row h-screen w-full min-h-0 overflow-hidden overscroll-none bg-background"
+      style={{ height: "100dvh", minHeight: "100dvh" }}
+    >
       <ChatSidebar
         conversations={state.conversations}
         currentId={currentConversationId}
@@ -373,33 +388,34 @@ export default function PriviaChatPage() {
 
         <div className="flex flex-1 overflow-hidden min-h-0">
           <div className="mx-auto flex w-full max-w-5xl flex-col relative h-full min-h-0">
-          <ScrollArea
-            className="flex-1 h-full px-4 py-6 md:px-6 md:py-8 pb-28 min-h-0"
-            onScrollCapture={handleScroll}
-          >
-            <ChatMessages
-              messages={visibleMessages}
-              isLoading={isLoading}
-              onRegenerate={handleRegenerate}
-              onPromptClick={(text) => handleSend(text)}
+            <ScrollArea
+              ref={scrollAreaRef}
+              className="flex-1 h-full px-4 py-6 md:px-6 md:py-8 min-h-0"
+              onScrollCapture={handleScroll}
+            >
+              <ChatMessages
+                messages={visibleMessages}
+                isLoading={isLoading}
+                onRegenerate={handleRegenerate}
+                onPromptClick={(text) => handleSend(text)}
+              />
+              <div ref={messagesEndRef} />
+            </ScrollArea>
+
+            <ChatScrollButton
+              visible={showScrollButton}
+              onClick={scrollToBottom}
             />
-            <div ref={messagesEndRef} />
-          </ScrollArea>
 
-          <ChatScrollButton
-            visible={showScrollButton}
-            onClick={scrollToBottom}
-          />
-
-          <ChatComposer
-            value={input}
-            onChange={setInput}
-            onSend={() => handleSend()}
-            onNewConversation={handleNewConversation}
-            onStop={stopGeneration}
-            isLoading={isLoading}
-            isConnected={isConnected}
-          />
+            <ChatComposer
+              value={input}
+              onChange={setInput}
+              onSend={() => handleSend()}
+              onNewConversation={handleNewConversation}
+              onStop={stopGeneration}
+              isLoading={isLoading}
+              isConnected={isConnected}
+            />
           </div>
         </div>
       </main>
