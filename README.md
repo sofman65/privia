@@ -1,10 +1,7 @@
-# Privia
+![Privia Logo](frontend/public/brand-logo-white.png)
 
 
-![Privia Logo](frontend/public/LOGO.png)
-
-
-A privacy-first AI chat workspace for teams. Built with FastAPI, Next.js, SQLite, and a pluggable inference engine.
+A RAG-ready SaaS template for AI chat products. Built with FastAPI, Next.js, SQLite, and a pluggable inference layer.
 
 
 
