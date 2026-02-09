@@ -63,3 +63,11 @@ export async function deleteConversationApi(id: string) {
     skipJson: true,
   })
 }
+
+export async function updateConversationTitle(id: string, title: string) {
+  return apiFetch<ConversationApi>(`/api/conversations/${id}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ title }),
+  })
+}

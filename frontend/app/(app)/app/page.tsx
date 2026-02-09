@@ -18,6 +18,7 @@ import {
   deleteConversationApi,
   getConversation,
   listConversations,
+  updateConversationTitle,
   type ConversationApi,
 } from "@/lib/api/conversations"
 import type { Conversation, Message } from "@/types/chat"
@@ -248,10 +249,16 @@ export default function PriviaChatPage() {
       addUserMessage(convId, message, new Date())
 
       if (firstUser) {
+        const firstTitle = message.slice(0, 40) + (message.length > 40 ? "…" : "")
         updateTitle(
           convId,
-          message.slice(0, 40) + (message.length > 40 ? "…" : ""),
+          firstTitle,
         )
+        if (convId !== "1") {
+          void updateConversationTitle(convId, firstTitle).catch((error) => {
+            console.error(`Failed to persist title for conversation ${convId}`, error)
+          })
+        }
       }
 
       addAssistantMessage(convId, "", new Date())

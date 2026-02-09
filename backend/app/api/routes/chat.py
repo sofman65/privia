@@ -96,6 +96,27 @@ def _activate_conversation(conv: Conversation, db: Session) -> None:
         db.flush()
 
 
+def _maybe_set_title_from_first_prompt(conv: Conversation, prompt: str) -> None:
+    """
+    Persist a conversation title from the first user prompt.
+
+    The frontend can still update title optimistically, but backend persistence
+    keeps titles correct after reload/hydration.
+    """
+    if conv.status != "empty":
+        return
+
+    current = (conv.title or "").strip()
+    if current and current != "New conversation":
+        return
+
+    text = (prompt or "").strip()
+    if not text:
+        return
+
+    conv.title = text[:40] + ("..." if len(text) > 40 else "")
+
+
 def _build_context(
     user_id: str, conv: Conversation, limit: int = 20
 ) -> ChatContext:
@@ -121,6 +142,9 @@ def query_chat(
     db: Session = Depends(get_db),
 ):
     conv = _get_or_create_conversation(db, user_id, payload.conversation_id)
+
+    # Persist title from first prompt on backend
+    _maybe_set_title_from_first_prompt(conv, payload.question)
 
     # Promote empty → active on first user message
     _activate_conversation(conv, db)
@@ -161,6 +185,9 @@ def stream_chat(
     db: Session = Depends(get_db),
 ):
     conv = _get_or_create_conversation(db, user_id, payload.conversation_id)
+
+    # Persist title from first prompt on backend
+    _maybe_set_title_from_first_prompt(conv, payload.question)
 
     # Promote empty → active on first user message
     _activate_conversation(conv, db)
@@ -247,6 +274,7 @@ async def chat_ws(websocket: WebSocket):
 
             try:
                 conv = _get_or_create_conversation(db, user_id, conversation_id)
+                _maybe_set_title_from_first_prompt(conv, question)
                 _activate_conversation(conv, db)
 
                 db.add(Message(conversation_id=conv.id, role="user", content=question))
