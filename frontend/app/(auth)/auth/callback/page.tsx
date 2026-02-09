@@ -5,16 +5,13 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { storeAuth } from "@/lib/auth"
-import { apiFetch } from "@/lib/api/client"
-import type { TokenResponse } from "@/types/auth"
 
 /**
  * OAuth callback page.
  *
- * After NextAuth completes the OAuth flow (Google / GitHub) it redirects here.
- * We read the NextAuth session, send the provider + profile to the FastAPI
- * backend POST /api/auth/oauth, which returns our own JWT + user object.
- * Then we store that JWT and redirect to /app -- same flow as local login.
+ * After NextAuth completes OAuth, the backend token is already exchanged
+ * server-side in NextAuth callbacks. We only persist it in browser storage
+ * and redirect to /app.
  */
 export default function OAuthCallbackPage() {
   const { data: session, status } = useSession()
@@ -32,27 +29,14 @@ export default function OAuthCallbackPage() {
 
     setExchanged(true)
 
-    const exchange = async () => {
-      try {
-        const data = await apiFetch<TokenResponse>("/api/auth/oauth", {
-          method: "POST",
-          body: JSON.stringify({
-            provider: session.user.provider,
-            provider_account_id: session.user.providerAccountId,
-            email: session.user.email,
-            full_name: session.user.name,
-            avatar_url: session.user.image,
-          }),
-        })
-        storeAuth(data.access_token, data.user)
-        router.replace("/app")
-      } catch (err: any) {
-        console.error("OAuth exchange failed:", err)
-        setError("Failed to complete sign-in. Please try again.")
-      }
+    const token = session.backendAccessToken
+    if (!token) {
+      setError(session.oauthExchangeError || "Failed to complete sign-in. Please try again.")
+      return
     }
 
-    exchange()
+    storeAuth(token, session.backendUser)
+    router.replace("/app")
   }, [session, status, router, exchanged])
 
   if (error) {

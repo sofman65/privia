@@ -14,10 +14,18 @@ class Settings(BaseSettings):
     #   - comma-separated: "https://a.com,https://b.com"
     #   - JSON array: '["https://a.com","https://b.com"]'
     allowed_origins: str = "http://localhost:3000"
+    # Optional regex for origin matching (e.g. https://.*\.vercel\.app)
+    allowed_origin_regex: str | None = None
     database_url: str = "sqlite:///./privia.db"
 
     @property
     def allowed_origins_list(self) -> list[str]:
+        def normalize(origin: str) -> str:
+            cleaned = origin.strip()
+            if cleaned.endswith("/"):
+                cleaned = cleaned.rstrip("/")
+            return cleaned
+
         raw = (self.allowed_origins or "").strip()
         if not raw:
             return []
@@ -28,13 +36,14 @@ class Settings(BaseSettings):
             except json.JSONDecodeError:
                 parsed = None
             if isinstance(parsed, list):
-                return [str(origin).strip() for origin in parsed if str(origin).strip()]
+                return [normalize(str(origin)) for origin in parsed if normalize(str(origin))]
 
-        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+        return [normalize(origin) for origin in raw.split(",") if normalize(origin)]
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        case_sensitive=False,
     )
 
 
