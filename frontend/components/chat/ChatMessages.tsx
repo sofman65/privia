@@ -12,7 +12,7 @@ export function ChatMessages({ messages, isLoading, onRegenerate, onPromptClick 
 
   if (showEmptyState) {
     return (
-      <div className="flex items-center justify-center py-10 min-h-[60vh]">
+      <div className="flex h-full min-h-0 items-center justify-center overflow-hidden">
         <EmptyState onPromptClick={onPromptClick} />
       </div>
     )

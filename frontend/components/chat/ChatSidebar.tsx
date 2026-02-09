@@ -1,5 +1,6 @@
 "use client"
 
+import type React from "react"
 import { useEffect, useMemo, useState } from "react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
@@ -101,6 +102,14 @@ export function ChatSidebar({
 
   const groupOrder = ["Today", "Yesterday", "Last 7 days", "Last 30 days", "Earlier"]
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    void onNewConversation()
+    if (isMobile) {
+      setOpen(false)
+    }
+  }
+
   return (
     <TooltipProvider delayDuration={300}>
       <Sidebar open={open} setOpen={setOpen}>
@@ -114,6 +123,7 @@ export function ChatSidebar({
             <Link
               href="/app"
               aria-label="Go to Privia home"
+              onClick={handleLogoClick}
               className={cn("flex items-center gap-3 transition-opacity hover:opacity-90", collapsed && "justify-center")}
             >
               <div className="flex items-center justify-center overflow-hidden pl-10">

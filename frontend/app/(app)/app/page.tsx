@@ -76,6 +76,7 @@ export default function PriviaChatPage() {
           m.content.toLowerCase().includes("welcome to privia"))
       ),
   )
+  const hasVisibleMessages = visibleMessages.length > 0
 
   // --- Auth + conversation bootstrap
   useEffect(() => {
@@ -388,22 +389,33 @@ export default function PriviaChatPage() {
 
         <div className="flex flex-1 overflow-hidden min-h-0">
           <div className="mx-auto flex w-full max-w-5xl flex-col relative h-full min-h-0">
-            <ScrollArea
-              ref={scrollAreaRef}
-              className="flex-1 h-full px-4 py-6 md:px-6 md:py-8 min-h-0"
-              onScrollCapture={handleScroll}
-            >
-              <ChatMessages
-                messages={visibleMessages}
-                isLoading={isLoading}
-                onRegenerate={handleRegenerate}
-                onPromptClick={(text) => handleSend(text)}
-              />
-              <div ref={messagesEndRef} />
-            </ScrollArea>
+            {hasVisibleMessages ? (
+              <ScrollArea
+                ref={scrollAreaRef}
+                className="flex-1 h-full px-4 py-6 md:px-6 md:py-8 min-h-0"
+                onScrollCapture={handleScroll}
+              >
+                <ChatMessages
+                  messages={visibleMessages}
+                  isLoading={isLoading}
+                  onRegenerate={handleRegenerate}
+                  onPromptClick={(text) => handleSend(text)}
+                />
+                <div ref={messagesEndRef} />
+              </ScrollArea>
+            ) : (
+              <div className="flex-1 min-h-0 overflow-hidden px-4 py-3 md:px-6 md:py-6">
+                <ChatMessages
+                  messages={visibleMessages}
+                  isLoading={isLoading}
+                  onRegenerate={handleRegenerate}
+                  onPromptClick={(text) => handleSend(text)}
+                />
+              </div>
+            )}
 
             <ChatScrollButton
-              visible={showScrollButton}
+              visible={showScrollButton && hasVisibleMessages}
               onClick={scrollToBottom}
             />
 

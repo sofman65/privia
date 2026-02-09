@@ -56,25 +56,25 @@ export function EmptyState({ onPromptClick }: EmptyStateProps) {
       ]
 
   return (
-    <div className="flex flex-col items-center justify-center h-full px-6 py-12">
+    <div className="flex h-full w-full flex-col items-center justify-center px-4 py-2 md:px-6 md:py-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col items-center max-w-3xl"
+        className="flex w-full max-w-3xl flex-col items-center"
       >
-        <div className="flex h-28 w-28 items-center justify-center mb-6 overflow-hidden">
-          <Logo variant="flower" mode={logoMode} className="h-20 w-auto" />
+        <div className="mb-3 flex h-20 w-20 items-center justify-center overflow-hidden md:mb-6 md:h-28 md:w-28">
+          <Logo variant="flower" mode={logoMode} className="h-14 w-auto md:h-20" />
         </div>
 
-        <TypewriterEffectSmooth words={words} className="mb-3" cursorClassName="bg-accent" />
+        <TypewriterEffectSmooth words={words} className="mb-2 md:mb-3" cursorClassName="bg-accent" />
 
-        <p className="text-muted-foreground text-center mb-8 max-w-xl leading-relaxed">
+        <p className="mb-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground line-clamp-2 md:mb-8 md:text-base md:line-clamp-none">
           A calm workspace for product teams and engineers. Start a conversation, ground answers in your docs,
           and keep everything organized for the team.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mb-8">
+        <div className="grid w-full max-w-2xl grid-cols-2 gap-2 md:grid-cols-2 md:gap-4">
           {starterPrompts.map((item, index) => {
             const Icon = item.icon
             return (
@@ -85,16 +85,16 @@ export function EmptyState({ onPromptClick }: EmptyStateProps) {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <Card
-                  className="p-4 cursor-pointer hover:bg-accent/10 hover:border-accent/50 transition-all group"
+                  className="group flex min-h-14 cursor-pointer items-center justify-center p-2.5 transition-all hover:border-accent/50 hover:bg-accent/10 md:min-h-0 md:block md:p-4"
                   onClick={() => onPromptClick(item.prompt)}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
-                      <Icon className="h-5 w-5" />
+                  <div className="flex h-full items-center justify-center gap-2 md:items-start md:justify-start md:gap-3">
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-accent group-hover:text-accent-foreground md:flex">
+                      <Icon className="h-3.5 w-3.5 md:h-5 md:w-5" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm mb-1">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{item.prompt}</p>
+                    <div className="min-w-0 text-center md:flex-1 md:text-left">
+                      <h3 className="mb-0.5 text-xs font-semibold leading-snug md:mb-1 md:text-sm">{item.title}</h3>
+                      <p className="hidden text-xs text-muted-foreground md:line-clamp-2 md:block">{item.prompt}</p>
                     </div>
                   </div>
                 </Card>
@@ -102,8 +102,6 @@ export function EmptyState({ onPromptClick }: EmptyStateProps) {
             )
           })}
         </div>
-
-
       </motion.div>
     </div>
   )
